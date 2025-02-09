@@ -6,16 +6,57 @@ body {
   font-family: 'Heebo', sans-serif;
 }
 
-/* Custom animations */
-@keyframes treeGrow {
+/* אנימציות בסיסיות */
+@keyframes fadeIn {
   from {
-    transform: scale(0);
+    opacity: 0;
   }
   to {
-    transform: scale(1);
+    opacity: 1;
   }
 }
 
-.tree-animation {
-  animation: treeGrow 0.5s ease-out;
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* קלאסים לאנימציה */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* אנימציות למשחק */
+.card-hover {
+  transition: transform 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+}
+
+.success-animation {
+  animation: successPulse 0.5s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

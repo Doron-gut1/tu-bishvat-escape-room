@@ -1,6 +1,3 @@
-import olivePic from '/images/Olive.png';
-
-// קבוצות הברכות
 export const BLESSING_GROUPS = {
   MEZONOT: {
     id: 'mezonot',
@@ -21,8 +18,6 @@ export const BLESSING_GROUPS = {
     species: ['olive', 'date', 'fig', 'pomegranate']
   }
 };
-
-// המינים ומידע עליהם
 export const SPECIES = {
   olive: {
     id: 'olive',
@@ -31,7 +26,10 @@ export const SPECIES = {
     orderRank: 1,
     explanation: 'קרוב ביותר למילה "ארץ" השנייה בפסוק',
     verse: 'ארץ זית שמן',
-    image: olivePic
+    image: {
+      type: 'image',
+      src: '/images/Olive.png'
+    }
   },
   date: {
     id: 'date',
@@ -40,7 +38,10 @@ export const SPECIES = {
     orderRank: 2,
     explanation: 'צמוד לזית בפסוק ("דבש" הוא דבש תמרים)',
     verse: 'ודבש',
-    image: '🌴'
+    image: {
+      type: 'emoji',
+      src: '🌴'
+    }
   },
   grape: {
     id: 'grape',
@@ -49,7 +50,10 @@ export const SPECIES = {
     orderRank: 3,
     explanation: 'הקרוב ביותר למילה "ארץ" הראשונה',
     verse: 'וגפן',
-    image: '🍇'
+    image: {
+      type: 'emoji',
+      src: '🍇'
+    }
   },
   fig: {
     id: 'fig',
@@ -58,7 +62,10 @@ export const SPECIES = {
     orderRank: 4,
     explanation: 'מופיע אחרי גפן בפסוק',
     verse: 'ותאנה',
-    image: '🪴'
+    image: {
+      type: 'image',
+      src: '/images/fig.png'
+    }
   },
   pomegranate: {
     id: 'pomegranate',
@@ -67,7 +74,10 @@ export const SPECIES = {
     orderRank: 5,
     explanation: 'הרחוק ביותר ממילת "ארץ"',
     verse: 'ורימון',
-    image: '🫐'
+    image: {
+     type: 'image',
+      src: '/images/Pomegranate.jpg'
+    }
   },
   wheat: {
     id: 'wheat',
@@ -76,7 +86,10 @@ export const SPECIES = {
     orderRank: null,
     explanation: 'מהדגנים - ברכתו מיני מזונות או המוציא',
     verse: 'חיטה',
-    image: '🌾'
+    image: {
+      type: 'emoji',
+      src: '🌾'
+    }
   },
   barley: {
     id: 'barley',
@@ -85,7 +98,10 @@ export const SPECIES = {
     orderRank: null,
     explanation: 'מהדגנים - ברכתו מיני מזונות או המוציא',
     verse: 'ושעורה',
-    image: '🌾'
+    image: {
+      type: 'emoji',
+      src: '🌾'
+    }
   }
 };
 

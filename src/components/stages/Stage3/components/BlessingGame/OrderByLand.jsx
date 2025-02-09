@@ -6,7 +6,6 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
 
-  // מסנן רק את המינים שצריך לסדר (ללא דגנים)
   const availableSpecies = Object.values(species).filter(s => s.orderRank !== null);
 
   const getUnorderedSpecies = () => {
@@ -44,6 +43,25 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
     }
   };
 
+  const renderSpeciesImage = (item) => {
+    if (item.image.type === 'image') {
+      return (
+        <img 
+          src={item.image.src} 
+          alt={item.name} 
+          className="w-12 h-12 object-contain"
+        />
+      );
+    } else if (item.image.type === 'emoji') {
+      return (
+        <span className="text-4xl" role="img" aria-label={item.name}>
+          {item.image.src}
+        </span>
+      );
+    }
+    return null;
+  };
+
   const renderVerse = () => {
     const parts = FULL_VERSE.split(' ');
     return (
@@ -77,7 +95,9 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
         }
       `}
     >
-      <span className="text-2xl mb-2">{item.image}</span>
+      <div className="mb-2">
+        {renderSpeciesImage(item)}
+      </div>
       <div className="font-bold">{item.name}</div>
       {showExplanation && (
         <p className="text-sm mt-2 text-gray-600">
@@ -88,7 +108,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       {/* הצגת הפסוק */}
       {renderVerse()}
 

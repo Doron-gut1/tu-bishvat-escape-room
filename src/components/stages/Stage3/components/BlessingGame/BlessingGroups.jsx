@@ -5,7 +5,6 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedSpecies, setDraggedSpecies] = useState(null);
 
-  // הפיכת אובייקט המינים למערך
   const speciesArray = Object.values(species);
 
   const handleDragStart = (speciesId) => {
@@ -38,7 +37,6 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
       totalAssigned++;
     });
 
-    // בודק שכל המינים שובצו
     if (totalAssigned !== speciesArray.length) {
       correct = false;
     }
@@ -47,7 +45,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
     if (correct) {
       setTimeout(() => {
-        onComplete(5); // 5 נקודות על השלמת המשימה
+        onComplete(5);
       }, 2000);
     }
   };
@@ -57,9 +55,27 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
     return species[speciesId].blessing === assignments[speciesId];
   };
 
+  const renderSpeciesImage = (item) => {
+    if (item.image.type === 'image') {
+      return (
+        <img 
+          src={item.image.src} 
+          alt={item.name} 
+          className="w-12 h-12 object-contain"
+        />
+      );
+    } else if (item.image.type === 'emoji') {
+      return (
+        <span className="text-4xl" role="img" aria-label={item.name}>
+          {item.image.src}
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="space-y-8">
-      {/* אזור המינים שצריך לסדר */}
+    <div className="space-y-8" dir="rtl">
       <div className="flex flex-wrap justify-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
         {speciesArray.map((item) => {
           const isAssigned = assignments[item.id];
@@ -82,14 +98,15 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
                 }
               `}
             >
-              <span className="text-2xl mb-2">{item.image}</span>
+              <div className="mb-2">
+                {renderSpeciesImage(item)}
+              </div>
               <div className="font-bold">{item.name}</div>
             </div>
           );
         })}
       </div>
 
-      {/* קבוצות הברכות */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Object.values(blessingGroups).map((group) => {
           const assignedSpecies = speciesArray.filter(
@@ -113,7 +130,9 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
                     key={item.id}
                     className="text-center p-2"
                   >
-                    <span className="text-xl">{item.image}</span>
+                    <div className="mb-2">
+                      {renderSpeciesImage(item)}
+                    </div>
                     <div>{item.name}</div>
                   </div>
                 ))}
@@ -129,7 +148,6 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         })}
       </div>
 
-      {/* כפתור בדיקה */}
       {!showExplanation && (
         <div className="text-center mt-6">
           <button
@@ -148,7 +166,6 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         </div>
       )}
 
-      {/* הסבר */}
       {showExplanation && (
         <div className="p-4 rounded-lg bg-green-50 mt-6">
           <h4 className="font-bold text-center text-xl mb-4">

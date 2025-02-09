@@ -59,7 +59,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
         {/* כפתור סגירה */}
         <button
           onClick={handleClose}
@@ -89,7 +89,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
                   key={option.id}
                   onClick={() => handleOptionSelect(option.id)}
                   className={`
-                    p-4 rounded-lg text-right transition-all
+                    p-4 rounded-lg text-right transition-all hover:shadow-md
                     ${selectedOptions.includes(option.id)
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-100 hover:bg-gray-200'
@@ -127,7 +127,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
                   key={item.id}
                   onClick={() => !showExplanation && handleOptionSelect(item.id)}
                   className={`
-                    p-4 rounded-lg text-right transition-all
+                    p-4 rounded-lg text-right transition-all hover:shadow-md
                     ${selectedOptions.includes(item.id)
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-100 hover:bg-gray-200'
@@ -146,15 +146,26 @@ const TaskModal = ({ task, onComplete, onClose }) => {
           )}
         </div>
 
-        {/* הסבר */}
+        {/* הסבר ומקורות */}
         {showExplanation && (
-          <div className={`p-4 rounded-lg mb-6 ${
-            isCorrect ? 'bg-green-100' : 'bg-red-100'
-          }`}>
-            <p className="font-bold mb-2">
-              {isCorrect ? 'כל הכבוד! 🎉' : 'לא בדיוק... 🤔'}
-            </p>
-            <p>{task.explanation}</p>
+          <div className="space-y-4 mb-6">
+            {/* תוצאה והסבר */}
+            <div className={`p-4 rounded-lg ${
+              isCorrect ? 'bg-green-100' : 'bg-red-100'
+            }`}>
+              <p className="font-bold mb-2">
+                {isCorrect ? 'כל הכבוד! 🎉' : 'לא בדיוק... 🤔'}
+              </p>
+              <p>{task.explanation}</p>
+            </div>
+
+            {/* מקור */}
+            {isCorrect && task.source && (
+              <div className="p-4 bg-yellow-50 rounded-lg">
+                <h4 className="font-bold mb-2">מקור:</h4>
+                <p className="text-lg">{task.source}</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -163,14 +174,14 @@ const TaskModal = ({ task, onComplete, onClose }) => {
           {showExplanation && !isCorrect ? (
             <button
               onClick={handleTryAgain}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
             >
               נסה שוב
             </button>
           ) : !showExplanation ? (
             <button
               onClick={checkAnswer}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
               disabled={selectedOptions.length === 0}
             >
               בדוק תשובה

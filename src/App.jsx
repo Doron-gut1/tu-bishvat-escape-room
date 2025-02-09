@@ -4,20 +4,17 @@ import GameStage from './components/GameStage';
 import NavigationBar from './components/NavigationBar';
 
 const App = () => {
-  // המצב הבסיסי של המשחק
   const [gameStarted, setGameStarted] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
   const [completedStages, setCompletedStages] = useState([]);
 
   const startGame = () => {
     setGameStarted(true);
-    // התחלה משלב ראשון - נטיעות בארץ ישראל
     setCurrentStage(1);
   };
 
   const moveToNextStage = () => {
     const nextStage = currentStage + 1;
-    // מוסיפים את השלב הנוכחי לרשימת השלבים שהושלמו
     if (!completedStages.includes(currentStage)) {
       setCompletedStages(prev => [...prev, currentStage]);
     }
@@ -25,19 +22,17 @@ const App = () => {
   };
 
   const handleStageSelect = (stage) => {
-    // אם זה מסך הפתיחה
+    // מסך פתיחה תמיד זמין
     if (stage === 0) {
       setGameStarted(false);
       setCurrentStage(0);
       return;
     }
 
-    // בודקים אם השלב זמין
-    const maxAllowedStage = completedStages.length > 0 
-      ? Math.max(...completedStages) + 1 
-      : 1;
-
-    if (stage <= maxAllowedStage) {
+    // אפשר לעבור לכל שלב אם המשחק כבר התחיל
+    if (gameStarted) {
+      setCurrentStage(stage);
+    } else {
       setGameStarted(true);
       setCurrentStage(stage);
     }

@@ -4,30 +4,36 @@ import GameStage from './components/GameStage';
 import NavigationBar from './components/NavigationBar';
 
 const App = () => {
+  // המצב הבסיסי של המשחק
   const [gameStarted, setGameStarted] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
-  const [completedStages, setCompletedStages] = useState(new Set());
+  const [completedStages, setCompletedStages] = useState([]);
 
   const startGame = () => {
     setGameStarted(true);
-    setCurrentStage(1);
+    setCurrentStage(1); // מתחילים משלב 1
   };
 
   const moveToNextStage = () => {
-    setCompletedStages(prev => new Set(prev).add(currentStage));
+    // מוסיפים את השלב הנוכחי לרשימת השלבים שהושלמו
+    if (!completedStages.includes(currentStage)) {
+      setCompletedStages(prev => [...prev, currentStage]);
+    }
+    // מתקדמים לשלב הבא
     setCurrentStage(prev => prev + 1);
   };
 
   const handleStageSelect = (stage) => {
-    // אם זה השלב הראשון, נאתחל את המשחק
+    // אם זה מסך הפתיחה
     if (stage === 0) {
       setGameStarted(false);
       setCurrentStage(0);
       return;
     }
 
-    // מעבר לשלב רק אם השלב הקודם הושלם או שזה שלב שכבר הושלם
-    if (stage <= Math.max(...completedStages) + 1 || completedStages.has(stage - 1)) {
+    // בודקים אם אפשר לעבור לשלב הנבחר
+    const maxAllowedStage = Math.max(...completedStages, 1) + 1;
+    if (stage <= maxAllowedStage) {
       setGameStarted(true);
       setCurrentStage(stage);
     }
@@ -37,7 +43,7 @@ const App = () => {
     if (window.confirm('האם אתה בטוח שברצונך להתחיל מחדש? כל ההתקדמות תימחק')) {
       setGameStarted(false);
       setCurrentStage(0);
-      setCompletedStages(new Set());
+      setCompletedStages([]);
     }
   };
 
@@ -46,6 +52,7 @@ const App = () => {
       {/* סרגל ניווט */}
       <NavigationBar 
         currentStage={currentStage}
+        completedStages={completedStages}
         onStageSelect={handleStageSelect}
         onReset={handleReset}
       />

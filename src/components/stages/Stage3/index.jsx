@@ -16,9 +16,9 @@ const Stage3 = ({ onComplete }) => {
   const [score, setScore] = useState(0);
   
   const handleStageComplete = (points) => {
-    setScore(prev => prev + points);
+    const newScore = score + points;
+    setScore(newScore);
     
-    // מעבר לשלב הבא
     switch (currentStage) {
       case STAGES.INTRO:
         setCurrentStage(STAGES.BLESSINGS);
@@ -31,7 +31,7 @@ const Stage3 = ({ onComplete }) => {
         break;
       case STAGES.VERSES:
         setCurrentStage(STAGES.COMPLETED);
-        setTimeout(onComplete, 3000);
+        onComplete();
         break;
       default:
         break;
@@ -42,11 +42,11 @@ const Stage3 = ({ onComplete }) => {
     switch (currentStage) {
       case STAGES.INTRO:
         return (
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg animate-fade-in">
             <h2 className="text-2xl font-bold text-green-800 mb-4">חגיגת הביכורים</h2>
             <p className="text-lg text-gray-700 mb-6">
-              בואו נלמד על מצוות הביכורים ונכיר את הקשר המיוחד בין שבעת המינים, 
-              ארץ ישראל ובית המקדש
+              בואו נלמד על מצוות הביכורים, נכיר את הקשר המיוחד בין שבעת המינים 
+              לארץ ישראל, ונגלה את סודות הברכות
             </p>
             <button
               onClick={() => handleStageComplete(0)}
@@ -74,7 +74,7 @@ const Stage3 = ({ onComplete }) => {
 
       case STAGES.COMPLETED:
         return (
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg animate-fade-in">
             <h2 className="text-2xl font-bold text-green-800 mb-4">
               כל הכבוד! 🎉
             </h2>
@@ -93,7 +93,6 @@ const Stage3 = ({ onComplete }) => {
     }
   };
 
-  // סרגל התקדמות
   const progress = (() => {
     switch (currentStage) {
       case STAGES.INTRO: return 0;
@@ -108,14 +107,14 @@ const Stage3 = ({ onComplete }) => {
   return (
     <div className="space-y-6">
       {/* סרגל התקדמות */}
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+      <div className="w-full bg-gray-200 rounded-full h-2">
         <div 
-          className="bg-green-500 h-2.5 rounded-full transition-all duration-500"
+          className="bg-green-500 h-2 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* תוכן השלב הנוכחי */}
+      {/* תוכן השלב */}
       {renderStage()}
     </div>
   );

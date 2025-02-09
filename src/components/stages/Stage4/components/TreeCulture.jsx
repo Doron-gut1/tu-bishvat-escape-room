@@ -2,69 +2,89 @@ import React, { useState } from 'react';
 import { TREES } from '../data/trees';
 
 const TreeCulture = ({ onComplete }) => {
-  const [selectedPiece, setSelectedPiece] = useState(null);
+  const [selectedTree, setSelectedTree] = useState(null);
+  const [showSummary, setShowSummary] = useState(false);
 
-  const handlePieceSelect = (piece) => {
-    setSelectedPiece(piece);
+  const handleTreeSelect = (tree) => {
+    setSelectedTree(tree);
   };
 
-  const pieces = TREES.map(tree => ({
-    id: tree.name,
-    image: tree.image,
-    content: tree.culturalFacts 
-  })).flat();
+  const handleNext = () => {
+    const currentIndex = TREES.findIndex(t => t.name === selectedTree);
+
+    if (currentIndex === TREES.length - 1) {
+      setShowSummary(true);
+    } else {
+      setSelectedTree(TREES[currentIndex + 1].name);
+    }
+  };
 
   return (
-    <div className="bg-green-50 px-4 py-8 rounded-lg">
+    <div className="bg-green-50 px-4 py-8 rounded-lg min-h-[500px]">
       <h3 className="text-center mb-8">מידע תרבותי על העצים</h3>
 
-      {selectedPiece ? (
-        <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
-          <h4 className="text-xl font-bold text-center">
-            {selectedPiece.id}  
-          </h4>
-          <img 
-            src={selectedPiece.image}
-            alt={selectedPiece.id}
-            className="w-64 h-64 object-contain mx-auto"  
-          />
-          {selectedPiece.content.map((fact, index) => (
-            <p key={index} className="text-lg leading-7">
-              {fact}
-            </p>  
-          ))}
-          <button
-            onClick={() => setSelectedPiece(null)} 
-            className="bg-green-500 text-white px-6 py-2 rounded-lg mt-4 mx-auto block"
+      {showSummary ? (
+        <div className="text-center space-y-4">
+          <h3 className="text-2xl mb-2">סיכום</h3>
+          <p>
+            למדנו על המשמעות התרבותית והסמלית של עצי ארץ ישראל במסורת היהודית.
+            כל עץ מספר סיפור ייחודי ומרתק!  
+          </p>
+          <p>
+            מזית המסמל שלום ועד רימון המייצג ריבוי מצוות, 
+            העצים שזורים בתרבות, בפולקלור ובמקורות  שלנו.
+          </p>
+          <button 
+            onClick={onComplete}
+            className="mt-8 bg-green-500 text-white text-lg px-6 py-2 rounded-lg shadow hover:bg-green-600"
           >
-            חזור  
+            סיום
           </button>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-6">
-            {pieces.map(piece => (
+          <div className="grid grid-cols-5 gap-4 mb-8">
+            {TREES.map(tree => (
               <div
-                key={piece.id} 
-                onClick={() => handlePieceSelect(piece)}
-                className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-shadow hover:shadow-lg"
+                key={tree.name}
+                onClick={() => handleTreeSelect(tree.name)}
+                className={`p-2 rounded-lg transition-colors cursor-pointer text-center ${
+                  selectedTree === tree.name
+                    ? 'bg-green-200' 
+                    : 'bg-white hover:bg-green-100'
+                }`}
               >
-                <img
-                  src={piece.image} 
-                  alt={piece.id}
-                  className="w-32 h-32 object-contain mx-auto mb-2"  
+                <img 
+                  src={tree.imageUrl} 
+                  alt={tree.name}
+                  className="w-full h-32 object-cover rounded-lg mb-1"
                 />
-                <div className="text-center font-bold">{piece.id}</div>
+                <span>{tree.name}</span>
               </div>  
             ))}
           </div>
-          
-          <button
-            onClick={onComplete} 
-            className="bg-green-500 text-white px-6 py-2 rounded-lg mt-8 mx-auto block"  
-          >
-            סיים  
-          </button>
+
+          {selectedTree && (
+            <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
+              <h4 className="text-2xl font-bold mb-2 text-center">{selectedTree}</h4>
+              {TREES
+                .find(t => t.name === selectedTree)
+                .culturalFacts
+                .map((fact, index) => (
+                  <p key={index}>{fact}</p>  
+                ))
+              }
+              <button
+                onClick={handleNext} 
+                className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg shadow hover:bg-green-600 block mx-auto"
+              >
+                {TREES.findIndex(t => t.name === selectedTree) === TREES.length - 1
+                  ? 'סיים' 
+                  : 'הבא'
+                }
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

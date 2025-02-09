@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TreeIdentification from './components/TreeIdentification';
 import TreeUsages from './components/TreeUsages';
 import TreeCulture from './components/TreeCulture';
+import { TREES } from './data/trees';
 
 const STAGES = {
   INTRO: 'intro',
@@ -64,19 +65,22 @@ const Stage4 = ({ onComplete }) => {
           &lt;TreeIdentification 
             onComplete={handleStageComplete} 
             addScore={addScore}
+            trees={TREES}
           />
         );
       case STAGES.USAGES:
         return (
           &lt;TreeUsages 
             onComplete={handleStageComplete}
-            addScore={addScore} 
+            addScore={addScore}
+            trees={TREES}
           />
         );  
       case STAGES.CULTURE:
         return (
           &lt;TreeCulture
             onComplete={handleStageComplete}
+            trees={TREES}
           />  
         );
       case STAGES.COMPLETED:
@@ -86,7 +90,7 @@ const Stage4 = ({ onComplete }) => {
               כל הכבוד! 🎉
             &lt;/h2>
             &lt;p className="text-lg text-gray-700 mb-4">
-              השלמתם את כל המשימות וצברתם {score} נקודות!
+              השלמתם את כל המשימות וצברתם {score} נקודות! 
             &lt;/p>
             &lt;p className="text-lg text-gray-700"> 
               למדנו על העצים המיוחדים שליוו את עם ישראל לאורך הדורות.

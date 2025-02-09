@@ -11,48 +11,55 @@ const TreeIdentification = ({ onComplete, addScore }) => {
   };
 
   const handleSubmit = () => {
-    const isCorrect = 
-      selectedAnswer === TREES[currentQuestion].name;
+    const currentTree = TREES[currentQuestion];
+    const isCorrect = selectedAnswer === currentTree.name;
     
     if (isCorrect) {
       setCorrectAnswers(correctAnswers + 1);
       addScore(10);
     }
 
+    setSelectedAnswer(null);
+    
     if (currentQuestion === TREES.length - 1) {
       onComplete();
     } else {
       setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
     }
   };
+
+  const currentTree = TREES[currentQuestion];
+  const treeOptions = [
+    currentTree,
+    ...TREES.filter(t => t.name !== currentTree.name).sort(() => 0.5 - Math.random()).slice(0, 3)
+  ];
 
   return (
     <div>
       <h3>
-        זהו את העץ לפי התמונה והתיאור 
-        ({currentQuestion + 1}/{TREES.length})  
+        זהו את העץ לפי התמונה והרמז ({currentQuestion + 1}/{TREES.length})  
       </h3>
-      <img 
-        src={TREES[currentQuestion].image} 
-        alt={TREES[currentQuestion].name}
-        className="w-64 h-64 object-contain mx-auto mb-4"
-      />
-      <p>{TREES[currentQuestion].description}</p>
       
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        {['זית', 'חרוב', 'תאנה', 'רימון'].map(option => (
+      <img 
+        src={currentTree.imageUrl} 
+        alt={currentTree.name}
+        className="w-64 h-64 object-cover mx-auto rounded-lg mb-4"
+      />
+      
+      <p className="text-center mb-6">{currentTree.clue}</p>
+      
+      <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+        {treeOptions.map(option => (
           <button
-            key={option}  
-            onClick={() => handleAnswerSelect(option)}
-            className={`
-              ${selectedAnswer === option 
-                ? 'bg-green-200'
-                : 'bg-gray-100'} 
-              p-4 rounded-lg transition-colors
-            `}
+            key={option.name}
+            onClick={() => handleAnswerSelect(option.name)}
+            className={`p-4 rounded-lg transition-colors ${
+              selectedAnswer === option.name 
+                ? 'bg-green-200 text-green-800' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
           >
-            {option}  
+            {option.name}  
           </button>
         ))}
       </div>
@@ -60,10 +67,12 @@ const TreeIdentification = ({ onComplete, addScore }) => {
       <button
         onClick={handleSubmit}
         disabled={!selectedAnswer}  
-        className="mt-8 bg-green-500 text-white px-6 py-2 rounded-lg disabled:bg-gray-400"
+        className="mt-8 bg-green-500 text-white px-6 py-2 rounded-lg shadow hover:bg-green-600 
+                   disabled:cursor-not-allowed disabled:bg-gray-400 block mx-auto"
       >
         {currentQuestion === TREES.length - 1 ? 'סיים' : 'הבא'}  
       </button>
+      
     </div>
   );
 };

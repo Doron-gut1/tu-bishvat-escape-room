@@ -44,25 +44,25 @@ const Stage4 = ({ onComplete }) => {
     switch (currentStage) {
       case STAGES.INTRO:
         return (
-          &lt;div className="text-center p-8 bg-white rounded-lg shadow-lg">
-            &lt;h2 className="text-2xl font-bold text-green-800 mb-4">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-green-800 mb-4">
               משחק העצים של ארץ ישראל 🌳
-            &lt;/h2>
-            &lt;p className="text-lg text-gray-700 mb-6">
+            </h2>
+            <p className="text-lg text-gray-700 mb-6">
               בואו נכיר את העצים המיוחדים הנזכרים במסורת ישראל,
               נלמד על סגולותיהם ועל מקומם בתרבות היהודית.  
-            &lt;/p>
-            &lt;button
+            </p>
+            <button
               onClick={handleStageComplete}
               className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"  
             >
               התחל
-            &lt;/button>
-          &lt;/div>
+            </button>
+          </div>
         );
       case STAGES.IDENTIFICATION:
         return (
-          &lt;TreeIdentification 
+          <TreeIdentification 
             onComplete={handleStageComplete} 
             addScore={addScore}
             trees={TREES}
@@ -70,7 +70,7 @@ const Stage4 = ({ onComplete }) => {
         );
       case STAGES.USAGES:
         return (
-          &lt;TreeUsages 
+          <TreeUsages 
             onComplete={handleStageComplete}
             addScore={addScore}
             trees={TREES}
@@ -78,26 +78,26 @@ const Stage4 = ({ onComplete }) => {
         );  
       case STAGES.CULTURE:
         return (
-          &lt;TreeCulture
+          <TreeCulture
             onComplete={handleStageComplete}
             trees={TREES}
           />  
         );
       case STAGES.COMPLETED:
         return (
-          &lt;div className="text-center p-8 bg-white rounded-lg shadow-lg">
-            &lt;h2 className="text-2xl font-bold text-green-800 mb-4">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-green-800 mb-4">
               כל הכבוד! 🎉
-            &lt;/h2>
-            &lt;p className="text-lg text-gray-700 mb-4">
+            </h2>
+            <p className="text-lg text-gray-700 mb-4">
               השלמתם את כל המשימות וצברתם {score} נקודות! 
-            &lt;/p>
-            &lt;p className="text-lg text-gray-700"> 
+            </p>
+            <p className="text-lg text-gray-700"> 
               למדנו על העצים המיוחדים שליוו את עם ישראל לאורך הדורות.
               מאילנות אלו אנו יונקים השראה לחיים, לתורה ולמצוות.
               תודה שלקחתם חלק במסע!
-            &lt;/p>
-          &lt;/div>
+            </p>
+          </div>
         );
       default:
         return null;
@@ -117,14 +117,15 @@ const Stage4 = ({ onComplete }) => {
   })();
 
   return (
-    &lt;div className="space-y-6">
-      &lt;div className="w-full bg-gray-200 rounded-full h-2">
-        &lt;div
+    <div className="space-y-6">
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
           className="bg-green-500 h-2 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
-        />&lt;/div>
+        ></div>
+      </div>
       {renderStage()}
-    &lt;/div>
+    </div>
   );
 };
 

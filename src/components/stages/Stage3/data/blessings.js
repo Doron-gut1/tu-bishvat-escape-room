@@ -42,7 +42,7 @@ export const SPECIES = {
   },
   grape: {
     id: 'grape',
-    name: 'ענבים',
+    name: ' (יין) ענבים',
     blessing: 'hagafen',
     orderRank: 3,
     explanation: 'הקרוב ביותר למילה "ארץ" הראשונה',

@@ -28,21 +28,21 @@ const TreeIdentification = ({ onComplete, addScore }) => {
   };
 
   return (
-    &lt;div>
-      &lt;h3>
+    <div>
+      <h3>
         זהו את העץ לפי התמונה והתיאור 
         ({currentQuestion + 1}/{TREES.length})  
-      &lt;/h3>
-      &lt;img 
+      </h3>
+      <img 
         src={TREES[currentQuestion].image} 
         alt={TREES[currentQuestion].name}
         className="w-64 h-64 object-contain mx-auto mb-4"
       />
-      &lt;p>{TREES[currentQuestion].description}&lt;/p>
+      <p>{TREES[currentQuestion].description}</p>
       
-      &lt;div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-2 gap-4 mt-4">
         {['זית', 'חרוב', 'תאנה', 'רימון'].map(option => (
-          &lt;button
+          <button
             key={option}  
             onClick={() => handleAnswerSelect(option)}
             className={`
@@ -53,18 +53,18 @@ const TreeIdentification = ({ onComplete, addScore }) => {
             `}
           >
             {option}  
-          &lt;/button>
+          </button>
         ))}
-      &lt;/div>
+      </div>
 
-      &lt;button
+      <button
         onClick={handleSubmit}
         disabled={!selectedAnswer}  
         className="mt-8 bg-green-500 text-white px-6 py-2 rounded-lg disabled:bg-gray-400"
       >
         {currentQuestion === TREES.length - 1 ? 'סיים' : 'הבא'}  
-      &lt;/button>
-    &lt;/div>
+      </button>
+    </div>
   );
 };
 

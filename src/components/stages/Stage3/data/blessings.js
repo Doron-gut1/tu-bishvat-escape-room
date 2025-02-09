@@ -1,3 +1,5 @@
+import olivePic from '/images/Olive.png';
+
 // קבוצות הברכות
 export const BLESSING_GROUPS = {
   MEZONOT: {
@@ -29,7 +31,7 @@ export const SPECIES = {
     orderRank: 1,
     explanation: 'קרוב ביותר למילה "ארץ" השנייה בפסוק',
     verse: 'ארץ זית שמן',
-    image: '🫒'
+    image: olivePic
   },
   date: {
     id: 'date',
@@ -42,7 +44,7 @@ export const SPECIES = {
   },
   grape: {
     id: 'grape',
-    name: ' (יין) ענבים',
+    name: 'ענבים',
     blessing: 'hagafen',
     orderRank: 3,
     explanation: 'הקרוב ביותר למילה "ארץ" הראשונה',

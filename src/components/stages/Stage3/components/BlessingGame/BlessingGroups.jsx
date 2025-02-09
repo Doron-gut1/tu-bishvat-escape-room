@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+import { Wheat, Grape, Palm, Cherry, Tree } from 'lucide-react';
+
+const SpeciesIcons = {
+  wheat: <Wheat className="w-8 h-8 text-yellow-600" />,
+  barley: <Wheat className="w-8 h-8 text-yellow-700" />,
+  grape: <Grape className="w-8 h-8 text-purple-600" />,
+  fig: <Cherry className="w-8 h-8 text-red-600" />,
+  pomegranate: <Cherry className="w-8 h-8 text-pink-600" />,
+  olive: <Tree className="w-8 h-8 text-green-700" />,
+  date: <Palm className="w-8 h-8 text-green-600" />
+};
 
 const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [assignments, setAssignments] = useState({});
@@ -38,7 +49,6 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
       totalAssigned++;
     });
 
-    // בודק שכל המינים שובצו
     if (totalAssigned !== speciesArray.length) {
       correct = false;
     }
@@ -47,7 +57,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
     if (correct) {
       setTimeout(() => {
-        onComplete(5); // 5 נקודות על השלמת המשימה
+        onComplete(5);
       }, 2000);
     }
   };
@@ -59,7 +69,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
   return (
     <div className="space-y-8">
-      {/* אזור המינים שצריך לסדר */}
+      {/* אזור המינים */}
       <div className="flex flex-wrap justify-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
         {speciesArray.map((item) => {
           const isAssigned = assignments[item.id];
@@ -71,9 +81,9 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
               draggable={!isAssigned && !showExplanation}
               onDragStart={() => handleDragStart(item.id)}
               className={`
-                p-3 rounded-lg cursor-grab text-center min-w-[100px]
+                p-4 rounded-lg cursor-grab text-center min-w-[120px]
                 transition-all transform hover:scale-105
-                ${isAssigned ? 'opacity-50' : 'bg-gray-100'}
+                ${isAssigned ? 'opacity-50' : 'bg-white shadow-md'}
                 ${showExplanation && isCorrect !== null
                   ? isCorrect
                     ? 'bg-green-100 border-2 border-green-500'
@@ -82,15 +92,17 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
                 }
               `}
             >
-              <span className="text-2xl mb-2">{item.image}</span>
-              <div className="font-bold">{item.name}</div>
+              <div className="mb-2 flex justify-center">
+                {SpeciesIcons[item.id]}
+              </div>
+              <div className="font-bold text-gray-800">{item.name}</div>
             </div>
           );
         })}
       </div>
 
       {/* קבוצות הברכות */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Object.values(blessingGroups).map((group) => {
           const assignedSpecies = speciesArray.filter(
             item => assignments[item.id] === group.id
@@ -101,26 +113,26 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
               key={group.id}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(group.id)}
-              className="p-4 rounded-lg bg-green-50 space-y-4"
+              className="p-6 rounded-lg bg-green-50 space-y-4"
             >
-              <h4 className="font-bold text-center text-green-800">
+              <h4 className="font-bold text-center text-green-800 text-lg">
                 {group.name}
               </h4>
               
-              <div className="min-h-[100px] border-2 border-dashed border-green-200 rounded-lg p-2">
+              <div className="min-h-[150px] border-2 border-dashed border-green-200 rounded-lg p-4 flex flex-col items-center gap-4">
                 {assignedSpecies.map(item => (
                   <div
                     key={item.id}
-                    className="text-center p-2"
+                    className="flex flex-col items-center gap-2 p-2"
                   >
-                    <span className="text-xl">{item.image}</span>
-                    <div>{item.name}</div>
+                    {SpeciesIcons[item.id]}
+                    <div className="font-medium">{item.name}</div>
                   </div>
                 ))}
               </div>
 
               {showExplanation && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 text-center">
                   {group.description}
                 </p>
               )}
@@ -136,7 +148,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
             onClick={checkAnswers}
             disabled={Object.keys(assignments).length !== speciesArray.length}
             className={`
-              px-6 py-2 rounded-lg text-white
+              px-6 py-3 rounded-lg text-white font-medium transition-colors
               ${Object.keys(assignments).length === speciesArray.length
                 ? 'bg-green-500 hover:bg-green-600'
                 : 'bg-gray-400 cursor-not-allowed'
@@ -150,15 +162,15 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
       {/* הסבר */}
       {showExplanation && (
-        <div className="p-4 rounded-lg bg-green-50 mt-6">
-          <h4 className="font-bold text-center text-xl mb-4">
+        <div className="p-6 rounded-lg bg-green-50 mt-6">
+          <h4 className="font-bold text-center text-xl mb-4 text-green-800">
             הידעת? 🤔
           </h4>
-          <p className="text-center text-gray-700">
+          <p className="text-center text-gray-700 leading-relaxed">
             סדר הברכות נקבע לפי חשיבות המינים. 
-            מזונות/המוציא קודמים כי הם עיקר המזון, 
+            ברכת המזונות/המוציא קודמת כי היא על עיקר המזון, 
             הגפן קודמת כי היא ברכה מיוחדת,
-            ואחריהם ברכת העץ לשאר הפירות.
+            ואחריהן ברכת העץ לשאר הפירות.
           </p>
         </div>
       )}

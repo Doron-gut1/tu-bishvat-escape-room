@@ -21,14 +21,14 @@ export const AREAS = [
       },
       {
         id: 'water-2',
-        type: 'match',
-        question: 'התאם את כמות המים הנכונה לכל עץ',
-        pairs: [
-          { item: 'עץ זית', match: 'השקיה מועטה', correct: true },
-          { item: 'עץ הדר', match: 'השקיה בינונית', correct: true },
-          { item: 'דקל', match: 'השקיה מרובה', correct: true }
+        type: 'select',
+        question: 'התאם את כמות המים הנכונה לעץ זית בוגר',
+        options: [
+          { id: 'low', text: '20-30 ליטר לשבוע', correct: true },
+          { id: 'medium', text: '50-60 ליטר לשבוע', correct: false },
+          { id: 'high', text: '100 ליטר לשבוע', correct: false }
         ],
-        explanation: 'כל עץ צריך כמות מים שונה בהתאם לטבעו ולסביבה שלו',
+        explanation: 'עץ זית הוא עץ חסכוני במים. הוא מסתפק בכמות מים קטנה יחסית ויכול לשרוד גם בתנאי יובש',
         points: 3
       }
     ],
@@ -67,3 +67,10 @@ export const ACHIEVEMENT_LEVELS = [
   { points: 6, title: 'מתקדם', badge: '🌿' },
   { points: 10, title: 'מומחה', badge: '🌳' }
 ];
+
+// הוספת אנימציות CSS
+export const ANIMATIONS = {
+  fadeIn: 'animate-fade-in',
+  slideIn: 'animate-slide-in',
+  bounce: 'animate-bounce'
+};

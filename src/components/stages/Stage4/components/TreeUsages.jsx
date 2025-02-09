@@ -37,15 +37,15 @@ const TreeUsages = ({ onComplete, addScore }) => {
   };
 
   return (
-    &lt;div>
-      &lt;h3>בחר את השימושים המתאימים לעץ הנבחר&lt;/h3>
-      &lt;p>
-        &lt;strong>{selectedTree || 'בחר עץ מהרשימה...'}&lt;/strong>  
-      &lt;/p>
+    <div>
+      <h3>בחר את השימושים המתאימים לעץ הנבחר</h3>
+      <p>
+        <strong>{selectedTree || 'בחר עץ מהרשימה...'}</strong>  
+      </p>
 
-      &lt;div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         {TREES.map(tree => (
-          &lt;button
+          <button
             key={tree.name}
             onClick={() => handleTreeSelect(tree.name)}
             className={`
@@ -57,19 +57,19 @@ const TreeUsages = ({ onComplete, addScore }) => {
             `}  
           >
             {tree.name}
-          &lt;/button>  
+          </button>  
         ))}
-      &lt;/div>
+      </div>
 
       {selectedTree && (
-        &lt;>
-          &lt;h4 className="mb-2">בחר שימושים:&lt;/h4>
-          &lt;div className="grid grid-cols-2 gap-4 mb-4">
+        <>
+          <h4 className="mb-2">בחר שימושים:</h4>
+          <div className="grid grid-cols-2 gap-4 mb-4">
             {TREES
               .find(t => t.name === selectedTree)
               .allUsages
               .map(usage => (
-                &lt;div
+                <div
                   key={usage} 
                   onClick={() => toggleUsageSelect(usage)}
                   className={`
@@ -81,19 +81,19 @@ const TreeUsages = ({ onComplete, addScore }) => {
                   `}
                 >
                   {usage}
-                &lt;/div>  
+                </div>  
               ))
             }
-          &lt;/div>
-          &lt;button
+          </div>
+          <button
             onClick={handleSubmit}
             className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg"
           >
             אישור  
-          &lt;/button>
-        &lt;/>
+          </button>
+        </>
       )}
-    &lt;/div>
+    </div>
   );
 };
 

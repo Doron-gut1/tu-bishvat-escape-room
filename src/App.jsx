@@ -11,16 +11,17 @@ const App = () => {
 
   const startGame = () => {
     setGameStarted(true);
-    setCurrentStage(1); // מתחילים משלב 1
+    // התחלה משלב ראשון - נטיעות בארץ ישראל
+    setCurrentStage(1);
   };
 
   const moveToNextStage = () => {
+    const nextStage = currentStage + 1;
     // מוסיפים את השלב הנוכחי לרשימת השלבים שהושלמו
     if (!completedStages.includes(currentStage)) {
       setCompletedStages(prev => [...prev, currentStage]);
     }
-    // מתקדמים לשלב הבא
-    setCurrentStage(prev => prev + 1);
+    setCurrentStage(nextStage);
   };
 
   const handleStageSelect = (stage) => {
@@ -31,8 +32,11 @@ const App = () => {
       return;
     }
 
-    // בודקים אם אפשר לעבור לשלב הנבחר
-    const maxAllowedStage = Math.max(...completedStages, 1) + 1;
+    // בודקים אם השלב זמין
+    const maxAllowedStage = completedStages.length > 0 
+      ? Math.max(...completedStages) + 1 
+      : 1;
+
     if (stage <= maxAllowedStage) {
       setGameStarted(true);
       setCurrentStage(stage);
@@ -49,13 +53,15 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-green-200" dir="rtl">
-      {/* סרגל ניווט */}
-      <NavigationBar 
-        currentStage={currentStage}
-        completedStages={completedStages}
-        onStageSelect={handleStageSelect}
-        onReset={handleReset}
-      />
+      {/* סרגל ניווט - מוצג רק אם המשחק התחיל */}
+      {gameStarted && (
+        <NavigationBar 
+          currentStage={currentStage}
+          completedStages={completedStages}
+          onStageSelect={handleStageSelect}
+          onReset={handleReset}
+        />
+      )}
 
       {/* תוכן המשחק */}
       <div className="max-w-4xl mx-auto p-4">

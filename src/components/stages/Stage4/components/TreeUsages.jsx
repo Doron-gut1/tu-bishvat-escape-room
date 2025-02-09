@@ -20,30 +20,31 @@ const TreeUsages = ({ onComplete, addScore }) => {
   const handleDrop = () => {
     if (!draggedUsage) return;
 
-    const isCorrect = TREES
-      .find(t => t.name === selectedTree)
-      .usages
-      .includes(draggedUsage);
+    const currentTree = TREES.find(t => t.name === selectedTree);
+    const isCorrect = currentTree.usages.includes(draggedUsage);
     
     if (isCorrect) {
+      currentTree.placedUsages.push(draggedUsage);
       addScore(10);
     }
 
     setDraggedUsage(null);
 
-    const nextIndex = TREES.findIndex(t => t.name === selectedTree) + 1;
-    if (nextIndex === TREES.length) {
-      onComplete();  
-    } else {
-      setSelectedTree(TREES[nextIndex].name);
+    if (currentTree.placedUsages.length === currentTree.usages.length) {
+      const nextIndex = TREES.findIndex(t => t.name === selectedTree) + 1;
+      if (nextIndex === TREES.length) {
+        onComplete();  
+      } else {
+        setSelectedTree(TREES[nextIndex].name);
+      }  
     }
   };
 
   return (
     <div>
-      <h3>גרור את השימושים המתאימים לעץ הנבחר</h3>
+      <h3 className="text-2xl text-center mb-6">גרור את השימושים המתאימים לעץ הנבחר</h3>
       
-      <div className="flex justify-around items-start mt-8">
+      <div className="flex justify-around items-start">
         <div>
           <h4 className="text-xl text-center mb-4">עצים</h4>
           <div className="grid grid-cols-2 gap-4">
@@ -93,9 +94,9 @@ const TreeUsages = ({ onComplete, addScore }) => {
         <div>
           <h4 className="text-xl text-center mb-4">שימושים</h4>
           <div className="grid grid-cols-2 gap-4">
-            {TREES
+            {selectedTree && TREES
               .find(t => t.name === selectedTree)
-              ?.allUsages
+              .allUsages
               .filter(usage => !TREES.find(t => t.name === selectedTree).placedUsages.includes(usage))  
               .map(usage => (
                 <div

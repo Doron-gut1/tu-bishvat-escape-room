@@ -17,7 +17,7 @@ export const AREAS = [
         ],
         explanation: 'השקיה בבוקר או בערב מונעת התאדות מים מיותרת ועוזרת לעצים לקלוט את המים בצורה יעילה יותר',
         source: 'ונתתי מטר ארצכם בעתו - דברים י"א, י"ד',
-        points: 2
+        points: 3
       },
       {
         id: 'water-2',
@@ -29,7 +29,8 @@ export const AREAS = [
           { id: 'high', text: '100 ליטר לשבוע', correct: false }
         ],
         explanation: 'עץ זית הוא עץ חסכוני במים. הוא מסתפק בכמות מים קטנה יחסית ויכול לשרוד גם בתנאי יובש',
-        points: 3
+        source: 'כי ה׳ אלוקיך מביאך אל ארץ טובה... ארץ נחלי מים (דברים ח׳, ז׳)',
+        points: 2
       }
     ],
     biblicalConnection: 'כי ה׳ אלוקיך מביאך אל ארץ טובה... ארץ נחלי מים עינות ותהומות יוצאים בבקעה ובהר (דברים ח׳, ז׳)',
@@ -52,6 +53,7 @@ export const AREAS = [
           { id: 'branches', text: 'ענפים קטנים', category: 'compost' }
         ],
         explanation: 'קומפוסט מיוצר מחומרים אורגניים בלבד שיכולים להתפרק באופן טבעי',
+        source: 'ושבתה הארץ שבת לה׳ (ויקרא כ״ה, ב׳)',
         points: 2
       }
     ],
@@ -60,17 +62,10 @@ export const AREAS = [
   }
 ];
 
-export const TOTAL_POINTS_NEEDED = 10;
+export const TOTAL_POINTS_NEEDED = 7;
 
 export const ACHIEVEMENT_LEVELS = [
   { points: 3, title: 'מתחיל', badge: '🌱' },
-  { points: 6, title: 'מתקדם', badge: '🌿' },
-  { points: 10, title: 'מומחה', badge: '🌳' }
+  { points: 5, title: 'מתקדם', badge: '🌿' },
+  { points: 7, title: 'מומחה', badge: '🌳' }
 ];
-
-// הוספת אנימציות CSS
-export const ANIMATIONS = {
-  fadeIn: 'animate-fade-in',
-  slideIn: 'animate-slide-in',
-  bounce: 'animate-bounce'
-};

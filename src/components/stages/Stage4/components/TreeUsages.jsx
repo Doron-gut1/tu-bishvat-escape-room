@@ -3,96 +3,116 @@ import { TREES } from '../data/trees';
 
 const TreeUsages = ({ onComplete, addScore }) => {
   const [selectedTree, setSelectedTree] = useState(null);
-  const [selectedUsages, setSelectedUsages] = useState([]);
+  const [draggedUsage, setDraggedUsage] = useState(null);
 
   const handleTreeSelect = (tree) => {
     setSelectedTree(tree);
-    setSelectedUsages([]);
   };
 
-  const toggleUsageSelect = (usage) => {
-    if (selectedUsages.includes(usage)) {
-      setSelectedUsages(selectedUsages.filter(u => u !== usage));
-    } else {
-      setSelectedUsages([...selectedUsages, usage]);
-    }
+  const handleDragStart = (usage) => {
+    setDraggedUsage(usage);
   };
 
-  const handleSubmit = () => {
-    const correctUsages = TREES.find(t => t.name === selectedTree).usages;
-    const isCorrect = 
-      JSON.stringify(selectedUsages.sort()) === 
-      JSON.stringify(correctUsages.sort());
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = () => {
+    if (!draggedUsage) return;
+
+    const isCorrect = TREES
+      .find(t => t.name === selectedTree)
+      .usages
+      .includes(draggedUsage);
     
     if (isCorrect) {
       addScore(10);
     }
 
-    if (TREES.findIndex(t => t.name === selectedTree) === TREES.length - 1) {
-      onComplete();
+    setDraggedUsage(null);
+
+    const nextIndex = TREES.findIndex(t => t.name === selectedTree) + 1;
+    if (nextIndex === TREES.length) {
+      onComplete();  
     } else {
-      const nextTree = TREES[TREES.findIndex(t => t.name === selectedTree) + 1];
-      handleTreeSelect(nextTree.name); 
+      setSelectedTree(TREES[nextIndex].name);
     }
   };
 
   return (
     <div>
-      <h3>בחר את השימושים המתאימים לעץ הנבחר</h3>
-      <p>
-        <strong>{selectedTree || 'בחר עץ מהרשימה...'}</strong>  
-      </p>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        {TREES.map(tree => (
-          <button
-            key={tree.name}
-            onClick={() => handleTreeSelect(tree.name)}
-            className={`
-              ${selectedTree === tree.name
-                ? 'bg-green-200'
-                : 'bg-gray-100'
+      <h3>גרור את השימושים המתאימים לעץ הנבחר</h3>
+      
+      <div className="flex justify-around items-start mt-8">
+        <div>
+          <h4 className="text-xl text-center mb-4">עצים</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {TREES.map(tree => (
+              <button
+                key={tree.name}
+                onClick={() => handleTreeSelect(tree.name)}
+                className={`p-4 rounded-lg transition-colors ${
+                  selectedTree === tree.name
+                    ? 'bg-green-200 text-green-800'
+                    : 'bg-gray-100 hover:bg-gray-200'  
+                }`}
+              >
+                {tree.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div 
+          className="w-1/2 border-4 border-dashed border-gray-400 rounded-lg p-4 min-h-[300px]"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <h4 className="text-xl text-center mb-4">
+            גרור לכאן את השימושים של{' '}
+            <span className="text-green-500">{selectedTree}</span>
+          </h4>
+          {selectedTree && (
+            <div className="space-y-4">
+              {TREES
+                .find(t => t.name === selectedTree)
+                .placedUsages
+                .map((usage, index) => (
+                  <div 
+                    key={usage + index}
+                    className="bg-green-500 text-white rounded-lg p-2 text-center"  
+                  >
+                    {usage}  
+                  </div>
+                ))
               }
-              p-4 rounded-lg transition-colors
-            `}  
-          >
-            {tree.name}
-          </button>  
-        ))}
-      </div>
-
-      {selectedTree && (
-        <>
-          <h4 className="mb-2">בחר שימושים:</h4>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+            </div>
+          )}
+        </div>
+        
+        <div>
+          <h4 className="text-xl text-center mb-4">שימושים</h4>
+          <div className="grid grid-cols-2 gap-4">
             {TREES
               .find(t => t.name === selectedTree)
-              .allUsages
+              ?.allUsages
+              .filter(usage => !TREES.find(t => t.name === selectedTree).placedUsages.includes(usage))  
               .map(usage => (
                 <div
                   key={usage} 
-                  onClick={() => toggleUsageSelect(usage)}
-                  className={`
-                    ${selectedUsages.includes(usage)
-                      ? 'bg-green-200'
-                      : 'bg-gray-100'
-                    }
-                    p-4 rounded-lg transition-colors cursor-pointer
-                  `}
+                  draggable
+                  onDragStart={() => handleDragStart(usage)}
+                  className="bg-gray-100 p-4 rounded-lg border border-gray-400 
+                             hover:bg-gray-200 cursor-move text-center"
                 >
                   {usage}
-                </div>  
+                </div>
               ))
             }
           </div>
-          <button
-            onClick={handleSubmit}
-            className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg"
-          >
-            אישור  
-          </button>
-        </>
-      )}
+        </div>
+      </div>
+      
     </div>
   );
 };

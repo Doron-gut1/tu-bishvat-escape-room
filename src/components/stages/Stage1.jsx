@@ -1,65 +1,57 @@
 import React, { useState } from 'react';
-import { MapInteraction } from 'react-map-interaction';
-
-const TREES = [
-  {
-    id: 'olive',
-    name: 'עץ זית',
-    hint: 'בהרי הגליל אני גדל, שמן טהור אני נותן למקדש',
-    correctRegion: 'galilee',
-  },
-  {
-    id: 'date',
-    name: 'עץ תמר',
-    hint: 'בבקעת הירדן אני משגשג, מים מהנחל אני סופג',
-    correctRegion: 'jordan-valley',
-  },
-  {
-    id: 'grape',
-    name: 'גפן',
-    hint: 'על הרי יהודה בטרסות, יין משובח אני עושה',
-    correctRegion: 'judean-hills',
-  },
-  {
-    id: 'fig',
-    name: 'תאנה',
-    hint: 'ליד הים אני גדלה, צל ומתיקות אני מעניקה',
-    correctRegion: 'coastal-plain',
-  },
-];
-
-const REGIONS = [
-  {
-    id: 'galilee',
-    name: 'הרי הגליל',
-    path: 'M50,50 L100,50 L100,100 L50,100 Z', // This is a placeholder path
-  },
-  {
-    id: 'jordan-valley',
-    name: 'בקעת הירדן',
-    path: 'M150,50 L200,50 L200,100 L150,100 Z',
-  },
-  {
-    id: 'judean-hills',
-    name: 'הרי יהודה',
-    path: 'M250,50 L300,50 L300,100 L250,100 Z',
-  },
-  {
-    id: 'coastal-plain',
-    name: 'מישור החוף',
-    path: 'M350,50 L400,50 L400,100 L350,100 Z',
-  },
-];
 
 const Stage1 = ({ onComplete }) => {
   const [selectedTree, setSelectedTree] = useState(null);
   const [plantedTrees, setPlantedTrees] = useState([]);
-  const [showHint, setShowHint] = useState(false);
-  const [attempts, setAttempts] = useState(0);
+
+  const TREES = [
+    {
+      id: 'olive',
+      name: 'עץ זית',
+      hint: 'בהרי הגליל אני גדל, שמן טהור אני נותן למקדש',
+      correctRegion: 'galilee',
+    },
+    {
+      id: 'date',
+      name: 'עץ תמר',
+      hint: 'בבקעת הירדן אני משגשג, מים מהנחל אני סופג',
+      correctRegion: 'jordan-valley',
+    },
+    {
+      id: 'grape',
+      name: 'גפן',
+      hint: 'על הרי יהודה בטרסות, יין משובח אני עושה',
+      correctRegion: 'judean-hills',
+    },
+    {
+      id: 'fig',
+      name: 'תאנה',
+      hint: 'ליד הים אני גדלה, צל ומתיקות אני מעניקה',
+      correctRegion: 'coastal-plain',
+    },
+  ];
+
+  const REGIONS = [
+    {
+      id: 'galilee',
+      name: 'הרי הגליל',
+    },
+    {
+      id: 'jordan-valley',
+      name: 'בקעת הירדן',
+    },
+    {
+      id: 'judean-hills',
+      name: 'הרי יהודה',
+    },
+    {
+      id: 'coastal-plain',
+      name: 'מישור החוף',
+    },
+  ];
 
   const handleTreeSelect = (tree) => {
     setSelectedTree(tree);
-    setShowHint(true);
   };
 
   const handleRegionClick = (region) => {
@@ -68,17 +60,11 @@ const Stage1 = ({ onComplete }) => {
     if (selectedTree.correctRegion === region.id) {
       setPlantedTrees([...plantedTrees, { ...selectedTree, region: region.id }]);
       setSelectedTree(null);
-      setShowHint(false);
 
       if (plantedTrees.length + 1 === TREES.length) {
         setTimeout(() => {
           onComplete();
         }, 1500);
-      }
-    } else {
-      setAttempts(attempts + 1);
-      if (attempts >= 2) {
-        setShowHint(true);
       }
     }
   };
@@ -114,51 +100,37 @@ const Stage1 = ({ onComplete }) => {
       </div>
 
       {/* Hint Display */}
-      {showHint && selectedTree && (
+      {selectedTree && (
         <div className="text-center p-4 bg-yellow-50 rounded-lg">
           <p className="text-lg">{selectedTree.hint}</p>
         </div>
       )}
 
       {/* Map Component */}
-      <div className="relative border-2 border-green-300 rounded-lg overflow-hidden h-96">
-        <MapInteraction>
-          <svg width="100%" height="100%" viewBox="0 0 500 500">
-            {REGIONS.map((region) => {
-              const treePlanted = plantedTrees.find(tree => tree.region === region.id);
-              return (
-                <g key={region.id} onClick={() => handleRegionClick(region)}>
-                  <path
-                    d={region.path}
-                    className={`${
-                      treePlanted 
-                        ? 'fill-green-200' 
-                        : 'fill-gray-100 hover:fill-green-100'
-                    } stroke-gray-400 cursor-pointer transition-colors`}
-                  />
-                  <text
-                    x="50%"
-                    y="50%"
-                    className="text-sm fill-gray-700"
-                    textAnchor="middle"
-                  >
-                    {region.name}
-                  </text>
-                  {treePlanted && (
-                    <text
-                      x="50%"
-                      y="70%"
-                      className="text-sm fill-green-700"
-                      textAnchor="middle"
-                    >
-                      {treePlanted.name}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        </MapInteraction>
+      <div className="relative border-2 border-green-300 rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-4">
+          {REGIONS.map((region) => {
+            const treePlanted = plantedTrees.find(tree => tree.region === region.id);
+            return (
+              <div
+                key={region.id}
+                onClick={() => handleRegionClick(region)}
+                className={`
+                  p-4 rounded-lg text-center cursor-pointer transition-colors
+                  ${treePlanted 
+                    ? 'bg-green-200' 
+                    : 'bg-gray-100 hover:bg-green-100'
+                  }
+                `}
+              >
+                <h4 className="font-bold mb-2">{region.name}</h4>
+                {treePlanted && (
+                  <p className="text-green-700">{treePlanted.name}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Progress Display */}

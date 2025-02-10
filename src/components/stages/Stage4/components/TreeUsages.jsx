@@ -1,119 +1,117 @@
-import React, { useState } from 'react';
-import { TREES } from '../data/trees';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
-const TreeUsages = ({ onComplete, addScore }) => {
-  const [selectedTree, setSelectedTree] = useState(null);
-  const [draggedUsage, setDraggedUsage] = useState(null);
+const TreeUsages = ({ trees, onComplete, addScore }) => {
+  const [currentTree, setCurrentTree] = useState(0);
+  const [selectedUsages, setSelectedUsages] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
 
-  const handleTreeSelect = (tree) => {
-    setSelectedTree(tree);
-  };
+  const tree = trees[currentTree];
 
-  const handleDragStart = (usage) => {
-    setDraggedUsage(usage);
-  };
+  // מערך כל השימושים האפשריים - מערבב את השימושים הנכונים עם האחרים
+  const allPossibleUsages = [...new Set([
+    ...tree.usages,
+    ...tree.allUsages.filter(usage => !tree.usages.includes(usage))
+  ])].sort(() => Math.random() - 0.5);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+  const handleUsageClick = (usage) => {
+    if (showFeedback) return; // מונע בחירה בזמן הצגת המשוב
 
-  const handleDrop = () => {
-    if (!draggedUsage) return;
-
-    const currentTree = TREES.find(t => t.name === selectedTree);
-    const isCorrect = currentTree.usages.includes(draggedUsage);
-    
-    if (isCorrect) {
-      currentTree.placedUsages.push(draggedUsage);
-      addScore(10);
-    }
-
-    setDraggedUsage(null);
-
-    if (currentTree.placedUsages.length === currentTree.usages.length) {
-      const nextIndex = TREES.findIndex(t => t.name === selectedTree) + 1;
-      if (nextIndex === TREES.length) {
-        onComplete();  
+    setSelectedUsages(prev => {
+      if (prev.includes(usage)) {
+        return prev.filter(u => u !== usage);
       } else {
-        setSelectedTree(TREES[nextIndex].name);
-      }  
+        return [...prev, usage];
+      }
+    });
+  };
+
+  const checkAnswers = () => {
+    const correctUsages = tree.usages;
+    const isAllCorrect = selectedUsages.length === correctUsages.length &&
+      selectedUsages.every(usage => correctUsages.includes(usage));
+
+    setIsCorrect(isAllCorrect);
+    setShowFeedback(true);
+
+    if (isAllCorrect) {
+      addScore(15); // נקודות בונוס על השלמה מושלמת
     }
+
+    setTimeout(() => {
+      if (isAllCorrect) {
+        if (currentTree === trees.length - 1) {
+          onComplete();
+        } else {
+          setCurrentTree(prev => prev + 1);
+          setSelectedUsages([]);
+        }
+      }
+      setShowFeedback(false);
+    }, 2000);
   };
 
   return (
-    <div>
-      <h3 className="text-2xl text-center mb-6">גרור את השימושים המתאימים לעץ הנבחר</h3>
-      
-      <div className="flex justify-around items-start">
-        <div>
-          <h4 className="text-xl text-center mb-4">עצים</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {TREES.map(tree => (
-              <button
-                key={tree.name}
-                onClick={() => handleTreeSelect(tree.name)}
-                className={`p-4 rounded-lg transition-colors ${
-                  selectedTree === tree.name
-                    ? 'bg-green-200 text-green-800'
-                    : 'bg-gray-100 hover:bg-gray-200'  
-                }`}
-              >
-                {tree.name}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div 
-          className="w-1/2 border-4 border-dashed border-gray-400 rounded-lg p-4 min-h-[300px]"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <h4 className="text-xl text-center mb-4">
-            גרור לכאן את השימושים של{' '}
-            <span className="text-green-500">{selectedTree}</span>
-          </h4>
-          {selectedTree && (
-            <div className="space-y-4">
-              {TREES
-                .find(t => t.name === selectedTree)
-                .placedUsages
-                .map((usage, index) => (
-                  <div 
-                    key={usage + index}
-                    className="bg-green-500 text-white rounded-lg p-2 text-center"  
-                  >
-                    {usage}  
-                  </div>
-                ))
-              }
-            </div>
-          )}
-        </div>
-        
-        <div>
-          <h4 className="text-xl text-center mb-4">שימושים</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {selectedTree && TREES
-              .find(t => t.name === selectedTree)
-              .allUsages
-              .filter(usage => !TREES.find(t => t.name === selectedTree).placedUsages.includes(usage))  
-              .map(usage => (
-                <div
-                  key={usage} 
-                  draggable
-                  onDragStart={() => handleDragStart(usage)}
-                  className="bg-gray-100 p-4 rounded-lg border border-gray-400 
-                             hover:bg-gray-200 cursor-move text-center"
-                >
-                  {usage}
-                </div>
-              ))
-            }
-          </div>
-        </div>
+    <div className="space-y-6 p-4 max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-green-800 mb-2">
+          {tree.name}
+        </h3>
+        <p className="text-gray-600 mb-4">
+          בחרו את כל השימושים המתאימים לעץ זה
+        </p>
       </div>
-      
+
+      <div className="grid grid-cols-2 gap-4">
+        {allPossibleUsages.map((usage, index) => (
+          <motion.button
+            key={usage}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleUsageClick(usage)}
+            className={`
+              p-4 rounded-lg text-center transition-colors
+              ${selectedUsages.includes(usage) 
+                ? 'bg-blue-100 border-2 border-blue-500'
+                : 'bg-gray-50 hover:bg-gray-100 border-2 border-gray-200'}
+              ${showFeedback && tree.usages.includes(usage) 
+                ? 'bg-green-100 border-green-500'
+                : ''}
+              ${showFeedback && selectedUsages.includes(usage) && !tree.usages.includes(usage)
+                ? 'bg-red-100 border-red-500'
+                : ''}
+            `}
+          >
+            {usage}
+          </motion.button>
+        ))}
+      </div>
+
+      {showFeedback && (
+        <div className={`text-center text-lg font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+          {isCorrect 
+            ? '🌟 כל הכבוד! בחרתם נכון!'
+            : '❌ יש לנסות שוב'}
+        </div>
+      )}
+
+      <button
+        onClick={checkAnswers}
+        disabled={selectedUsages.length === 0 || showFeedback}
+        className="
+          mt-6 w-full py-3 px-6 rounded-lg
+          bg-green-500 text-white font-bold
+          hover:bg-green-600 transition-colors
+          disabled:bg-gray-300 disabled:cursor-not-allowed
+        "
+      >
+        בדיקה
+      </button>
+
+      <div className="text-center text-sm text-gray-500">
+        עץ {currentTree + 1} מתוך {trees.length}
+      </div>
     </div>
   );
 };

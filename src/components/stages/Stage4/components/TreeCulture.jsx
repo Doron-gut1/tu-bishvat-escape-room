@@ -1,92 +1,107 @@
 import React, { useState } from 'react';
-import { TREES } from '../data/trees';
+import { motion } from 'framer-motion';
 
-const TreeCulture = ({ onComplete }) => {
-  const [selectedTree, setSelectedTree] = useState(null);
-  const [showSummary, setShowSummary] = useState(false);
+const TreeCulture = ({ trees, onComplete }) => {
+  const [currentTree, setCurrentTree] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
-  const handleTreeSelect = (tree) => {
-    setSelectedTree(tree);
-  };
+  const tree = trees[currentTree];
 
   const handleNext = () => {
-    const currentIndex = TREES.findIndex(t => t.name === selectedTree);
-
-    if (currentIndex === TREES.length - 1) {
-      setShowSummary(true);
+    if (currentTree === trees.length - 1) {
+      onComplete();
     } else {
-      setSelectedTree(TREES[currentIndex + 1].name);
+      setCurrentTree(prev => prev + 1);
+      setShowAll(false);
     }
   };
 
   return (
-    <div className="bg-green-50 px-4 py-8 rounded-lg min-h-[500px]">
-      <h3 className="text-center mb-8">מידע תרבותי על העצים</h3>
-
-      {showSummary ? (
-        <div className="text-center space-y-4">
-          <h3 className="text-2xl mb-2">סיכום</h3>
-          <p>
-            למדנו על המשמעות התרבותית והסמלית של עצי ארץ ישראל במסורת היהודית.
-            כל עץ מספר סיפור ייחודי ומרתק!  
+    <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-lg">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-green-800 mb-2">
+            {tree.name} - עובדות מעניינות
+          </h3>
+          <p className="text-gray-600">
+            בואו נלמד על המשמעות המיוחדת של {tree.name} במסורת ובתרבות שלנו
           </p>
-          <p>
-            מזית המסמל שלום ועד רימון המייצג ריבוי מצוות, 
-            העצים שזורים בתרבות, בפולקלור ובמקורות  שלנו.
-          </p>
-          <button 
-            onClick={onComplete}
-            className="mt-8 bg-green-500 text-white text-lg px-6 py-2 rounded-lg shadow hover:bg-green-600"
-          >
-            סיום
-          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-5 gap-4 mb-8">
-            {TREES.map(tree => (
-              <div
-                key={tree.name}
-                onClick={() => handleTreeSelect(tree.name)}
-                className={`p-2 rounded-lg transition-colors cursor-pointer text-center ${
-                  selectedTree === tree.name
-                    ? 'bg-green-200' 
-                    : 'bg-white hover:bg-green-100'
-                }`}
-              >
-                <img 
-                  src={tree.imageUrl} 
-                  alt={tree.name}
-                  className="w-full h-32 object-cover rounded-lg mb-1"
-                />
-                <span>{tree.name}</span>
-              </div>  
-            ))}
-          </div>
 
-          {selectedTree && (
-            <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
-              <h4 className="text-2xl font-bold mb-2 text-center">{selectedTree}</h4>
-              {TREES
-                .find(t => t.name === selectedTree)
-                .culturalFacts
-                .map((fact, index) => (
-                  <p key={index}>{fact}</p>  
-                ))
-              }
-              <button
-                onClick={handleNext} 
-                className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg shadow hover:bg-green-600 block mx-auto"
-              >
-                {TREES.findIndex(t => t.name === selectedTree) === TREES.length - 1
-                  ? 'סיים' 
-                  : 'הבא'
-                }
-              </button>
+        <div className="bg-green-50 p-4 rounded-lg">
+          <h4 className="font-bold text-lg mb-3 text-green-800">
+            תיאור כללי:
+          </h4>
+          <p className="text-gray-700">
+            {tree.description}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <h4 className="font-bold text-lg text-green-800">
+            עובדות מהמקורות:
+          </h4>
+          {tree.culturalFacts.map((fact, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.2 }}
+              className="bg-white p-4 rounded-lg border-2 border-green-100"
+            >
+              {fact}
+            </motion.div>
+          ))}
+        </div>
+
+        {!showAll && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="w-full py-2 text-green-600 hover:text-green-700 font-medium"
+          >
+            הצג עוד... 📚
+          </button>
+        )}
+
+        {showAll && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-bold text-lg mb-3 text-green-800">
+                שימושים נוספים:
+              </h4>
+              <ul className="list-disc list-inside space-y-2">
+                {tree.allUsages.map((usage, index) => (
+                  <li key={index} className="text-gray-700">{usage}</li>
+                ))}
+              </ul>
             </div>
-          )}
-        </>
-      )}
+          </motion.div>
+        )}
+
+        <button
+          onClick={handleNext}
+          className="
+            w-full py-3 px-6 rounded-lg
+            bg-green-500 text-white font-bold
+            hover:bg-green-600 transition-colors
+          "
+        >
+          {currentTree === trees.length - 1 ? 'סיים' : 'הבא'}
+        </button>
+
+        <div className="text-center text-sm text-gray-500">
+          עץ {currentTree + 1} מתוך {trees.length}
+        </div>
+      </motion.div>
     </div>
   );
 };

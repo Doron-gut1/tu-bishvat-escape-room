@@ -1,89 +1,171 @@
-import React, { useState } from 'react';
-import { TREES } from '../data/trees';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CulturalFactPopup from './CulturalFactPopup';
 
-const TreeIdentification = ({ onComplete, addScore }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+const TreeIdentification = ({ trees, onComplete, addScore }) => {
+  const [currentTree, setCurrentTree] = useState(0);
+  const [options, setOptions] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [answerResult, setAnswerResult] = useState(null);
+  const [attempts, setAttempts] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [showFact, setShowFact] = useState(false);
+  const [currentFact, setCurrentFact] = useState(0);
 
-  const handleAnswerSelect = (answer) => {
-    setSelectedAnswer(answer);
+  useEffect(() => {
+    // יצירת אפשרויות רק בטעינת עץ חדש
+    const currentTreeData = trees[currentTree];
+    const otherTrees = trees.filter(t => t.id !== currentTreeData.id);
+    const shuffledOtherTrees = [...otherTrees].sort(() => 0.5 - Math.random()).slice(0, 3);
+    const allOptions = [currentTreeData, ...shuffledOtherTrees].sort(() => 0.5 - Math.random());
+    setOptions(allOptions);
+    setAttempts(0);
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+    setIsCorrect(false);
+  }, [currentTree, trees]);
+
+  const handleAnswerSelect = (treeId) => {
+    if (showFeedback) return;
+    
+    const currentTreeData = trees[currentTree];
+    const correct = treeId === currentTreeData.id;
+
+    setSelectedAnswer(treeId);
+    setIsCorrect(correct);
+    setShowFeedback(true);
+
+    if (correct) {
+      const baseScore = 10;
+      const attemptBonus = Math.max(0, 5 - attempts);
+      addScore(baseScore + attemptBonus);
+      setTimeout(() => {
+        setShowFact(true);
+      }, 1000);
+    } else {
+      setAttempts(prev => prev + 1);
+      if (attempts >= 2) {
+        // אחרי 3 ניסיונות נראה את התשובה הנכונה
+        setTimeout(() => {
+          setShowFact(true);
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          setShowFeedback(false);
+          setSelectedAnswer(null);
+        }, 1500);
+      }
+    }
   };
 
-  const handleSubmit = () => {
-    const currentTree = TREES[currentQuestion];
-    const isCorrect = selectedAnswer === currentTree.name;
-    
-    setAnswerResult(isCorrect);
-
-    if (isCorrect) {
-      addScore(10);
-    }
-    
-    setTimeout(() => {
-      setSelectedAnswer(null);
-      setAnswerResult(null);
-
-      if (currentQuestion === TREES.length - 1) {
+  const handleFactClose = () => {
+    if (currentFact < trees[currentTree].culturalFacts.length - 1) {
+      setCurrentFact(prev => prev + 1);
+    } else {
+      setShowFact(false);
+      setCurrentFact(0);
+      if (currentTree === trees.length - 1) {
         onComplete();
       } else {
-        setCurrentQuestion(currentQuestion + 1);
+        setCurrentTree(prev => prev + 1);
       }
-    }, 1000);
+    }
   };
 
-  const currentTree = TREES[currentQuestion];
-  const treeOptions = [
-    currentTree,
-    ...TREES.filter(t => t.name !== currentTree.name).sort(() => 0.5 - Math.random()).slice(0, 3)
-  ].sort(() => 0.5 - Math.random());
+  const currentTreeData = trees[currentTree];
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-2xl text-center">
-        זהו את העץ לפי התמונה והרמז ({currentQuestion + 1}/{TREES.length})  
-      </h3>
-      
-      <img 
-        src={currentTree.imageUrl} 
-        alt={currentTree.name}
-        className="w-64 h-64 object-cover mx-auto rounded-lg mb-4"
-      />
-      
-      <p className="text-xl text-center">{currentTree.clue}</p>
-      
-      <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
-        {treeOptions.map(option => (
-          <button
-            key={option.name}
-            onClick={() => handleAnswerSelect(option.name)}
-            className={`p-4 rounded-lg transition-colors ${
-              selectedAnswer === option.name 
-                ? 'bg-blue-200 text-blue-800 border-2 border-blue-500' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-            disabled={selectedAnswer}
-          >
-            {option.name}  
-          </button>
-        ))}
-      </div>
-
-      {answerResult !== null && (
-        <div className={`text-center text-xl ${answerResult ? 'text-green-600' : 'text-red-600'}`}>
-          {answerResult ? 'תשובה נכונה! 🌿' : 'טעות, נסו שוב 🍂'}  
-        </div>
-      )}
-
-      <button
-        onClick={handleSubmit}
-        disabled={!selectedAnswer}  
-        className="mt-8 bg-green-500 text-white text-xl px-6 py-3 rounded-lg shadow hover:bg-green-600 
-                   disabled:cursor-not-allowed disabled:bg-gray-400 block mx-auto"
+    <div className="max-w-4xl mx-auto p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
       >
-        {currentQuestion === TREES.length - 1 ? 'סיים' : 'הבא'}  
-      </button>
-      
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-green-800 mb-2">
+            זהו את העץ
+          </h3>
+          <p className="text-gray-600 mb-4">
+            שאלה {currentTree + 1} מתוך {trees.length}
+          </p>
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="relative w-64 h-64 rounded-lg overflow-hidden shadow-lg"
+          >
+            <img
+              src={currentTreeData.imageUrl}
+              alt="עץ לזיהוי"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = '/images/trees/placeholder.jpg';
+              }}
+            />
+          </motion.div>
+        </div>
+
+        <div className="text-center mb-6">
+          <p className="text-lg text-gray-700 bg-yellow-50 p-4 rounded-lg inline-block">
+            רמז: {currentTreeData.clue}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {options.map((tree) => (
+            <motion.button
+              key={tree.id}
+              onClick={() => handleAnswerSelect(tree.id)}
+              disabled={showFeedback}
+              className={`
+                p-4 rounded-lg text-center transition-all transform
+                ${selectedAnswer === tree.id
+                  ? showFeedback
+                    ? isCorrect
+                      ? 'bg-green-100 border-2 border-green-500'
+                      : 'bg-red-100 border-2 border-red-500'
+                    : 'bg-blue-100 border-2 border-blue-500'
+                  : 'bg-gray-50 hover:bg-gray-100 border-2 border-gray-200'
+                }
+                ${showFeedback && currentTreeData.id === tree.id && !isCorrect
+                  ? 'bg-green-100 border-2 border-green-500'
+                  : ''
+                }
+                disabled:opacity-75 disabled:cursor-not-allowed
+              `}
+            >
+              {tree.name}
+            </motion.button>
+          ))}
+        </div>
+
+        <AnimatePresence>
+          {showFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center mt-4"
+            >
+              <p className={`text-xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                {isCorrect
+                  ? '🌟 כל הכבוד!'
+                  : attempts >= 2
+                    ? 'נסו פעם אחרונה!'
+                    : '❌ לא מדויק, נסו שוב'}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <CulturalFactPopup
+          fact={currentTreeData.culturalFacts[currentFact]}
+          onClose={handleFactClose}
+          isVisible={showFact}
+        />
+      </motion.div>
     </div>
   );
 };

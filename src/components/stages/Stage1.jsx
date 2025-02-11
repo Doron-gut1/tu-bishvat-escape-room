@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 
+// הגדרת העצים עם רמזים משופרים
 const TREES = [
   {
     id: 'olive',
     name: 'עץ זית',
-    hint: 'בהרי הגליל אני גדל, שמן טהור אני נותן למקדש',
+    hint: 'באדמת הר אני גדל, מפירותי שמן זהב נוזל',
     correctRegion: 'galilee',
     hints: [
-      'אני גדל במקום גבוה',
-      'השמן שלי שימש להדלקת המנורה במקדש',
-      'בסיפור המבול, היונה הביאה עלה שלי'
+      'בסיפור המבול, יונה הביאה עלי בפיה',
+      'פירותי נכבשים או נסחטים לשמן',
+      'השמן שלי היה חשוב מאוד במקדש'
     ],
     biblical: {
       verses: [
@@ -22,12 +23,12 @@ const TREES = [
   {
     id: 'date',
     name: 'עץ תמר',
-    hint: 'בבקעת הירדן אני משגשג, מים מהנחל אני סופג',
+    hint: 'במקום חם אני פורח, מתוק פרי ולראש גבוה מטפס',
     correctRegion: 'jordan-valley',
     hints: [
-      'אני צריך הרבה מים ואקלים חם',
-      'יריחו נקראת עיר התמרים',
-      'דבורה הנביאה ישבה תחתי'
+      'עיר אחת בארץ נקראת על שמי',
+      'צילי מבורך במדבר החם',
+      'שמי מופיע בשם של נביאה חשובה'
     ],
     biblical: {
       verses: [
@@ -40,30 +41,30 @@ const TREES = [
   {
     id: 'grape',
     name: 'גפן',
-    hint: 'על הרי יהודה בטרסות, יין משובח אני עושה',
+    hint: 'על מדרגות אבן אני מטפס, פרי סגול מתוק מבשיל בסוף הקיץ',
     correctRegion: 'judean-hills',
     hints: [
+      'מפירותי עושים משקה לקידוש',
       'המרגלים נשאו אשכול ממני',
-      'היין שלי משמש לקידוש',
-      'אני גדל על מדרגות בהר'
+      'אני גדל בכרמים על צלע ההר'
     ],
     biblical: {
       verses: [
         'וַיָּבֹאוּ עַד-נַחַל אֶשְׁכֹּל, וַיִּכְרְתוּ מִשָּׁם זְמוֹרָה וְאֶשְׁכּוֹל עֲנָבִים אֶחָד (במדבר יג, כג)',
         'וְגֶפֶן תְּאֵנָה וְרִמּוֹן אֶרֶץ זֵית שֶׁמֶן וּדְבָשׁ (דברים ח, ח)'
       ],
-      info: 'הגפן היא סמל לעם ישראל ולברכת הארץ. היין משמש לקידוש ולשמחה. אשכול ה ענבים שהביאו המרגלים הראה את פוריות הארץ.'
+      info: 'הגפן היא סמל לעם ישראל ולברכת הארץ. היין משמש לקידוש ולשמחה. אשכול הענבים שהביאו המרגלים הראה את פוריות הארץ.'
     }
   },
   {
     id: 'fig',
     name: 'תאנה',
-    hint: 'ליד הים אני גדלה, צל ומתיקות אני מעניקה',
+    hint: 'בצל עלי הרחבים תמצאו מנוחה, ופרי מתוק בכל עונה',
     correctRegion: 'coastal-plain',
     hints: [
-      'אני נותנת פירות מתוקים',
-      'העלים שלי גדולים ומצלים',
-      'אדם וחוה השתמשו בעלים שלי'
+      'העלים שלי שימשו לבגד הראשון בתורה',
+      'פירותי מבשילים בהדרגה לאורך הקיץ',
+      'בימי שלום ישבו תחתי ותחת חברי הגפן'
     ],
     biblical: {
       verses: [
@@ -100,6 +101,7 @@ const Stage1 = ({ onComplete }) => {
   const [attempts, setAttempts] = useState({});
   const [showHints, setShowHints] = useState({});
   const [showBiblical, setShowBiblical] = useState(null);
+  const [allTreesPlanted, setAllTreesPlanted] = useState(false);
 
   const handleTreeSelect = (tree) => {
     setSelectedTree(tree);
@@ -110,14 +112,13 @@ const Stage1 = ({ onComplete }) => {
 
     if (selectedTree.correctRegion === region.id) {
       const newTree = { ...selectedTree, region: region.id };
-      setPlantedTrees([...plantedTrees, newTree]);
+      const updatedPlantedTrees = [...plantedTrees, newTree];
+      setPlantedTrees(updatedPlantedTrees);
       setSelectedTree(null);
       setShowBiblical(newTree);
       
-      if (plantedTrees.length + 1 === TREES.length) {
-        setTimeout(() => {
-          onComplete();
-        }, 5000); // נותן זמן לקרוא את המידע על העץ האחרון
+      if (updatedPlantedTrees.length === TREES.length) {
+        setAllTreesPlanted(true);
       }
     } else {
       const newAttempts = {
@@ -151,13 +152,16 @@ const Stage1 = ({ onComplete }) => {
             <button
               key={tree.id}
               onClick={() => !isPlanted && handleTreeSelect(tree)}
-              className={`px-6 py-3 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 ${
-                isPlanted 
+              className={`
+                px-4 py-3 rounded-lg text-lg transition-all duration-300 transform
+                hover:scale-105 w-full sm:w-auto min-w-[150px]
+                ${isPlanted 
                   ? 'bg-gray-200 cursor-not-allowed' 
                   : selectedTree?.id === tree.id
                     ? 'bg-green-500 text-white shadow-lg'
                     : 'bg-green-100 hover:bg-green-200'
-              }`}
+                }
+              `}
               disabled={isPlanted}
             >
               {tree.name}
@@ -168,11 +172,11 @@ const Stage1 = ({ onComplete }) => {
 
       {/* רמזים */}
       {selectedTree && showHints[selectedTree.id] > 0 && (
-        <div className="text-center p-6 bg-yellow-50 rounded-lg shadow-md">
+        <div className="text-center p-4 sm:p-6 bg-yellow-50 rounded-lg shadow-md">
           <h4 className="text-xl font-bold mb-4 text-yellow-800">רמזים:</h4>
           <ul className="space-y-3">
             {selectedTree.hints.slice(0, showHints[selectedTree.id]).map((hint, index) => (
-              <li key={index} className="text-lg">{hint}</li>
+              <li key={index} className="text-base sm:text-lg">{hint}</li>
             ))}
           </ul>
         </div>
@@ -180,14 +184,14 @@ const Stage1 = ({ onComplete }) => {
 
       {/* רמז בסיסי */}
       {selectedTree && (
-        <div className="text-center p-5 bg-green-50 rounded-lg shadow-md">
-          <p className="text-xl">{selectedTree.hint}</p>
+        <div className="text-center p-4 sm:p-5 bg-green-50 rounded-lg shadow-md">
+          <p className="text-base sm:text-xl">{selectedTree.hint}</p>
         </div>
       )}
 
       {/* מפת הארץ */}
-      <div className="relative border-2 border-green-300 rounded-lg p-6 bg-white shadow-lg">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="relative border-2 border-green-300 rounded-lg p-4 sm:p-6 bg-white shadow-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {REGIONS.map((region) => {
             const treePlanted = plantedTrees.find(tree => tree.region === region.id);
             return (
@@ -195,7 +199,7 @@ const Stage1 = ({ onComplete }) => {
                 key={region.id}
                 onClick={() => handleRegionClick(region)}
                 className={`
-                  p-6 rounded-lg text-center cursor-pointer transition-all duration-300
+                  p-4 sm:p-6 rounded-lg text-center cursor-pointer transition-all duration-300
                   transform hover:scale-105
                   ${treePlanted 
                     ? 'bg-green-200 shadow-md' 
@@ -203,9 +207,9 @@ const Stage1 = ({ onComplete }) => {
                   }
                 `}
               >
-                <h4 className="text-xl font-bold mb-3">{region.name}</h4>
+                <h4 className="text-lg sm:text-xl font-bold mb-3">{region.name}</h4>
                 {treePlanted && (
-                  <div className="text-green-700 font-bold text-lg">
+                  <div className="text-green-700 font-bold text-base sm:text-lg">
                     {treePlanted.name}
                   </div>
                 )}
@@ -218,23 +222,23 @@ const Stage1 = ({ onComplete }) => {
       {/* מידע תנ"כי */}
       {showBiblical && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-2xl font-bold text-green-800 mb-6">{showBiblical.name} בתנ"ך</h3>
+          <div className="bg-white rounded-lg p-4 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-xl sm:text-2xl font-bold text-green-800 mb-6">{showBiblical.name} בתנ"ך</h3>
             <div className="space-y-6">
               <div>
-                <h4 className="text-xl font-bold mb-3 text-green-700">פסוקים:</h4>
+                <h4 className="text-lg sm:text-xl font-bold mb-3 text-green-700">פסוקים:</h4>
                 {showBiblical.biblical.verses.map((verse, index) => (
-                  <p key={index} className="text-lg mb-3 pr-4 border-r-4 border-green-500">{verse}</p>
+                  <p key={index} className="text-base sm:text-lg mb-3 pr-4 border-r-4 border-green-500">{verse}</p>
                 ))}
               </div>
               <div>
-                <h4 className="text-xl font-bold mb-3 text-green-700">מידע:</h4>
-                <p className="text-lg leading-relaxed">{showBiblical.biblical.info}</p>
+                <h4 className="text-lg sm:text-xl font-bold mb-3 text-green-700">מידע:</h4>
+                <p className="text-base sm:text-lg leading-relaxed">{showBiblical.biblical.info}</p>
               </div>
             </div>
             <button 
               onClick={() => setShowBiblical(null)}
-              className="mt-8 bg-green-500 text-white px-6 py-3 rounded-lg text-lg hover:bg-green-600 transition-colors duration-300"
+              className="mt-6 sm:mt-8 bg-green-500 text-white px-6 py-3 rounded-lg text-lg hover:bg-green-600 transition-colors duration-300 w-full sm:w-auto"
             >
               סגור
             </button>
@@ -242,9 +246,21 @@ const Stage1 = ({ onComplete }) => {
         </div>
       )}
 
+      {/* כפתור סיום */}
+      {allTreesPlanted && (
+        <div className="text-center mt-8">
+          <button
+            onClick={onComplete}
+            className="bg-green-500 text-white px-8 py-4 rounded-lg text-xl font-bold hover:bg-green-600 transition-colors duration-300 shadow-lg"
+          >
+            המשך לשלב הבא
+          </button>
+        </div>
+      )}
+
       {/* התקדמות */}
-      <div className="text-center">
-        <p className="text-xl text-gray-600">
+      <div className="text-center mt-4">
+        <p className="text-lg sm:text-xl text-gray-600">
           נשתלו {plantedTrees.length} מתוך {TREES.length} עצים
         </p>
       </div>

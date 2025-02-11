@@ -1,19 +1,33 @@
+// src/components/stages/Stage2/components/TaskModal.jsx
+
 import React, { useState } from 'react';
 
 const TaskModal = ({ task, onComplete, onClose }) => {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
+  const [partialAnswer, setPartialAnswer] = useState(false);
 
   const resetTask = () => {
     setSelectedOptions([]);
     setShowExplanation(false);
     setIsCorrect(null);
+    setPartialAnswer(false);
   };
 
   const handleOptionSelect = (optionId) => {
     if (task.type === 'select') {
-      setSelectedOptions([optionId]);
+      if (task.multiSelect) {
+        // טיפול בבחירה מרובה
+        if (selectedOptions.includes(optionId)) {
+          setSelectedOptions(selectedOptions.filter(id => id !== optionId));
+        } else {
+          setSelectedOptions([...selectedOptions, optionId]);
+        }
+      } else {
+        // בחירה בודדת
+        setSelectedOptions([optionId]);
+      }
     } else if (task.type === 'sort') {
       if (selectedOptions.includes(optionId)) {
         setSelectedOptions(selectedOptions.filter(id => id !== optionId));
@@ -25,10 +39,26 @@ const TaskModal = ({ task, onComplete, onClose }) => {
 
   const checkAnswer = () => {
     let correct = false;
+    let partial = false;
 
     if (task.type === 'select') {
-      const selectedOption = task.options.find(opt => opt.id === selectedOptions[0]);
-      correct = selectedOption?.correct || false;
+      if (task.multiSelect) {
+        // בדיקת תשובות מרובות
+        const correctOptions = task.options.filter(opt => opt.correct).map(opt => opt.id);
+        const selectedCorrect = selectedOptions.filter(id => 
+          task.options.find(opt => opt.id === id && opt.correct)
+        );
+        
+        if (selectedCorrect.length === correctOptions.length && selectedOptions.length === correctOptions.length) {
+          correct = true;
+        } else if (selectedCorrect.length > 0 && selectedCorrect.length < correctOptions.length) {
+          partial = true;
+        }
+      } else {
+        // בדיקת תשובה בודדת
+        const selectedOption = task.options.find(opt => opt.id === selectedOptions[0]);
+        correct = selectedOption?.correct || false;
+      }
     } else if (task.type === 'sort') {
       const correctItems = task.items
         .filter(item => item.category === 'compost')
@@ -39,6 +69,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
     }
 
     setIsCorrect(correct);
+    setPartialAnswer(partial);
     setShowExplanation(true);
 
     if (correct) {
@@ -57,7 +88,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
+      <div className="bg-white rounded-lg p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
         {/* כפתור סגירה */}
         <button
           onClick={handleClose}
@@ -68,13 +99,18 @@ const TaskModal = ({ task, onComplete, onClose }) => {
 
         {/* כותרת */}
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-green-800 mb-2">
+          <h3 className="text-xl md:text-2xl font-bold text-green-800 mb-2">
             {task.question}
           </h3>
           {task.points && (
             <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
               {task.points} נקודות
             </span>
+          )}
+          {task.multiSelect && !showExplanation && (
+            <p className="text-sm text-gray-600 mt-2">
+              ניתן לבחור יותר מתשובה אחת
+            </p>
           )}
         </div>
 
@@ -95,6 +131,11 @@ const TaskModal = ({ task, onComplete, onClose }) => {
                   `}
                 >
                   {option.text}
+                  {task.multiSelect && (
+                    <span className="mr-2">
+                      {selectedOptions.includes(option.id) ? '✓' : '○'}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -149,16 +190,18 @@ const TaskModal = ({ task, onComplete, onClose }) => {
           <div className="space-y-4 mb-6">
             {/* תוצאה והסבר */}
             <div className={`p-4 rounded-lg ${
-              isCorrect ? 'bg-green-100' : 'bg-red-100'
+              isCorrect ? 'bg-green-100' : partialAnswer ? 'bg-yellow-100' : 'bg-red-100'
             }`}>
               <p className="font-bold mb-2">
-                {isCorrect ? 'כל הכבוד! 🎉' : 'לא בדיוק... 🤔'}
+                {isCorrect ? 'כל הכבוד! 🎉' : 
+                 partialAnswer ? 'כמעט שם! יש עוד תשובה נכונה 🤔' : 
+                 'לא בדיוק... 🤔'}
               </p>
               <p>{task.explanation}</p>
             </div>
 
             {/* מקור */}
-            {isCorrect && task.source && (
+            {(isCorrect || partialAnswer) && task.source && (
               <div className="p-4 bg-yellow-50 rounded-lg">
                 <h4 className="font-bold mb-2">מקור:</h4>
                 <p className="text-lg">{task.source}</p>
@@ -169,7 +212,7 @@ const TaskModal = ({ task, onComplete, onClose }) => {
 
         {/* כפתורים */}
         <div className="flex justify-between mt-6">
-          {showExplanation && !isCorrect ? (
+          {showExplanation && (!isCorrect || partialAnswer) ? (
             <button
               onClick={handleTryAgain}
               className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"

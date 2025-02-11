@@ -1,18 +1,4 @@
-import React, { useState } from 'react';
+import Stage5Component from './Stage5/index';
 
-const Stage5 = ({ onComplete }) => {
-  return (
-    <div className="text-center">
-      <h3 className="text-xl text-green-800 mb-4">תיקון עולם</h3>
-      <p className="text-gray-600 mb-4">שלב זה בפיתוח...</p>
-      <button 
-        onClick={onComplete}
-        className="bg-green-500 text-white px-4 py-2 rounded-lg"
-      >
-        סיים את המשחק
-      </button>
-    </div>
-  );
-};
-
-export default Stage5;
+// מייצא את הקומפוננטה החדשה
+export default Stage5Component;

@@ -1,3 +1,5 @@
+// src/components/stages/Stage3/data/blessings.js
+
 export const BLESSING_GROUPS = {
   MEZONOT: {
     id: 'mezonot',
@@ -9,7 +11,7 @@ export const BLESSING_GROUPS = {
     id: 'hagafen',
     name: 'בורא פרי הגפן',
     description: 'ברכה מיוחדת ליין',
-    species: ['grape']
+    species: ['wine']
   },
   HAETZ: {
     id: 'haetz',
@@ -18,6 +20,7 @@ export const BLESSING_GROUPS = {
     species: ['olive', 'date', 'fig', 'pomegranate']
   }
 };
+
 export const SPECIES = {
   olive: {
     id: 'olive',
@@ -43,16 +46,16 @@ export const SPECIES = {
       src: '🌴'
     }
   },
-  grape: {
-    id: 'grape',
-    name: 'ענבים',
+  wine: {
+    id: 'wine',
+    name: 'יין',
     blessing: 'hagafen',
     orderRank: 3,
     explanation: 'הקרוב ביותר למילה "ארץ" הראשונה',
     verse: 'וגפן',
     image: {
       type: 'emoji',
-      src: '🍇'
+      src: '🍷'
     }
   },
   fig: {
@@ -112,7 +115,7 @@ export const FULL_VERSE = 'ארץ חיטה ושעורה וגפן ותאנה ור
 export const BLESSING_ORDER = [
   'olive',   // 1. זית - קרוב ל"ארץ" השנייה
   'date',    // 2. תמר (דבש) - צמוד לזית
-  'grape',   // 3. גפן - קרוב ל"ארץ" הראשונה
+  'wine',    // 3. יין - קרוב ל"ארץ" הראשונה
   'fig',     // 4. תאנה - אחרי גפן
   'pomegranate' // 5. רימון - הכי רחוק
 ];

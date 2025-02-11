@@ -1,90 +1,92 @@
-import React, { useState } from 'react';
-import BlessingGame from './components/BlessingGame';
-import BikurimJourney from './components/BikurimJourney';
-import VersesGame from './components/VersesGame';
+// src/components/stages/Stage3/components/BlessingGame/index.jsx
 
-const STAGES = {
-  INTRO: 'intro',
-  BLESSINGS: 'blessings',
-  JOURNEY: 'journey',
-  VERSES: 'verses',
+import React, { useState } from 'react';
+import { BLESSING_GROUPS, SPECIES, BLESSING_ORDER } from '../../data/blessings';
+import BlessingGroups from './BlessingGroups';
+import OrderByLand from './OrderByLand';
+
+const GAME_STAGES = {
+  GROUPS: 'groups',
+  ORDER: 'order',
   COMPLETED: 'completed'
 };
 
-const Stage3 = ({ onComplete }) => {
-  const [currentStage, setCurrentStage] = useState(STAGES.INTRO);
+const BlessingGame = ({ onComplete }) => {
+  const [gameStage, setGameStage] = useState(GAME_STAGES.GROUPS);
   const [score, setScore] = useState(0);
   
-  const handleStageComplete = (points) => {
-    const newScore = score + points;
-    setScore(newScore);
-    
-    switch (currentStage) {
-      case STAGES.INTRO:
-        setCurrentStage(STAGES.BLESSINGS);
-        break;
-      case STAGES.BLESSINGS:
-        setCurrentStage(STAGES.JOURNEY);
-        break;
-      case STAGES.JOURNEY:
-        setCurrentStage(STAGES.VERSES);
-        break;
-      case STAGES.VERSES:
-        setCurrentStage(STAGES.COMPLETED);
-        onComplete();
-        break;
-      default:
-        break;
-    }
+  const handleGroupsComplete = (points) => {
+    setScore(prev => prev + points);
+    setGameStage(GAME_STAGES.ORDER);
+  };
+
+  const handleOrderComplete = (points) => {
+    setScore(prev => prev + points);
+    setGameStage(GAME_STAGES.COMPLETED);
+  };
+
+  const handleNextGame = () => {
+    onComplete(score);
   };
 
   const renderStage = () => {
-    switch (currentStage) {
-      case STAGES.INTRO:
+    switch (gameStage) {
+      case GAME_STAGES.GROUPS:
         return (
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg animate-fade-in">
-            <h2 className="text-2xl font-bold text-green-800 mb-4">חגיגת הביכורים</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              בואו נלמד על מצוות הביכורים, נכיר את הקשר המיוחד בין שבעת המינים 
-              לארץ ישראל, ונגלה את סודות הברכות
-            </p>
-            <button
-              onClick={() => handleStageComplete(0)}
-              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
-            >
-              בואו נתחיל!
-            </button>
+          <div className="animate-fade-in">
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-bold text-green-800 mb-2">
+                קבוצות הברכות
+              </h3>
+              <p className="text-gray-600">
+                סדרו את שבעת המינים לפי הברכה המתאימה להם
+              </p>
+            </div>
+            <BlessingGroups 
+              blessingGroups={BLESSING_GROUPS}
+              species={SPECIES}
+              onComplete={handleGroupsComplete}
+            />
           </div>
         );
 
-      case STAGES.BLESSINGS:
+      case GAME_STAGES.ORDER:
         return (
-          <BlessingGame onComplete={handleStageComplete} />
+          <div className="animate-fade-in">
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-bold text-green-800 mb-2">
+                סדר קדימה בברכות
+              </h3>
+              <p className="text-gray-600">
+                סדרו את הפירות לפי קרבתם למילה "ארץ" בפסוק
+              </p>
+            </div>
+            <OrderByLand
+              species={SPECIES}
+              correctOrder={BLESSING_ORDER}
+              onComplete={handleOrderComplete}
+            />
+          </div>
         );
 
-      case STAGES.JOURNEY:
+      case GAME_STAGES.COMPLETED:
         return (
-          <BikurimJourney onComplete={handleStageComplete} />
-        );
-
-      case STAGES.VERSES:
-        return (
-          <VersesGame onComplete={handleStageComplete} />
-        );
-
-      case STAGES.COMPLETED:
-        return (
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg animate-fade-in">
-            <h2 className="text-2xl font-bold text-green-800 mb-4">
+          <div className="text-center p-6 bg-green-50 rounded-lg animate-fade-in">
+            <h3 className="text-xl font-bold text-green-800 mb-4">
               כל הכבוד! 🎉
-            </h2>
+            </h3>
             <p className="text-lg text-gray-700 mb-4">
-              השלמתם את כל המשימות בהצלחה וצברתם {score} נקודות!
+              השלמתם בהצלחה את משחק הברכות וצברתם {score} נקודות!
             </p>
-            <p className="text-lg text-gray-700">
-              למדתם על חשיבות הביכורים, על סדר הברכות ועל הקשר המיוחד
-              בין עם ישראל לארצו ופירותיה
+            <p className="text-md text-gray-600 mb-6">
+              למדתם על סדר הברכות ועל החשיבות המיוחדת של כל אחד משבעת המינים
             </p>
+            <button
+              onClick={handleNextGame}
+              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
+            >
+              למשחק הבא
+            </button>
           </div>
         );
 
@@ -93,13 +95,12 @@ const Stage3 = ({ onComplete }) => {
     }
   };
 
+  // סרגל התקדמות
   const progress = (() => {
-    switch (currentStage) {
-      case STAGES.INTRO: return 0;
-      case STAGES.BLESSINGS: return 25;
-      case STAGES.JOURNEY: return 50;
-      case STAGES.VERSES: return 75;
-      case STAGES.COMPLETED: return 100;
+    switch (gameStage) {
+      case GAME_STAGES.GROUPS: return 33;
+      case GAME_STAGES.ORDER: return 66;
+      case GAME_STAGES.COMPLETED: return 100;
       default: return 0;
     }
   })();
@@ -114,10 +115,12 @@ const Stage3 = ({ onComplete }) => {
         />
       </div>
 
-      {/* תוכן השלב */}
-      {renderStage()}
+      {/* תוכן המשחק */}
+      <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+        {renderStage()}
+      </div>
     </div>
   );
 };
 
-export default Stage3;
+export default BlessingGame;

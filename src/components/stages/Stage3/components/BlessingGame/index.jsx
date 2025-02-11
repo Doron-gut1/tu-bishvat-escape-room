@@ -1,3 +1,5 @@
+// src/components/stages/Stage3/components/BlessingGame/index.jsx
+
 import React, { useState } from 'react';
 import { BLESSING_GROUPS, SPECIES, BLESSING_ORDER } from '../../data/blessings';
 import BlessingGroups from './BlessingGroups';
@@ -21,7 +23,10 @@ const BlessingGame = ({ onComplete }) => {
   const handleOrderComplete = (points) => {
     setScore(prev => prev + points);
     setGameStage(GAME_STAGES.COMPLETED);
-    setTimeout(() => onComplete(score + points), 2000);
+  };
+
+  const handleNextGame = () => {
+    onComplete(score);
   };
 
   const renderStage = () => {
@@ -73,9 +78,15 @@ const BlessingGame = ({ onComplete }) => {
             <p className="text-lg text-gray-700 mb-4">
               השלמתם בהצלחה את משחק הברכות וצברתם {score} נקודות!
             </p>
-            <p className="text-md text-gray-600">
+            <p className="text-md text-gray-600 mb-6">
               למדתם על סדר הברכות ועל החשיבות המיוחדת של כל אחד משבעת המינים
             </p>
+            <button
+              onClick={handleNextGame}
+              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
+            >
+              למשחק הבא
+            </button>
           </div>
         );
 
@@ -84,7 +95,6 @@ const BlessingGame = ({ onComplete }) => {
     }
   };
 
-  // סרגל התקדמות
   const progress = (() => {
     switch (gameStage) {
       case GAME_STAGES.GROUPS: return 33;
@@ -105,7 +115,7 @@ const BlessingGame = ({ onComplete }) => {
       </div>
 
       {/* תוכן המשחק */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
         {renderStage()}
       </div>
     </div>

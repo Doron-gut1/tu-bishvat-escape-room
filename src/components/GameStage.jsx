@@ -23,14 +23,14 @@ const GameStage = ({ stage, onComplete }) => {
     {
       id: 3,
       component: Stage3,
-      title: 'חגיגת ביכורים',
-      description: 'הכירו את חגיגת הביכורים'
+      title: 'ברכות ושבעת המינים',
+      description: 'הברכות ושבעת המינים'
     },
     {
       id: 4,
       component: Stage4,
-      title: 'אהבת הארץ',
-      description: 'גלו את הקשר המיוחד לארץ ישראל'
+      title: 'העצים ושימושיהן',
+      description: 'הכירו את העצים ואת הדברים שעושים איתם'
     },
     {
       id: 5,

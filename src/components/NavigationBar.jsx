@@ -5,8 +5,8 @@ const NavigationBar = ({ currentStage, completedStages, onStageSelect, onReset }
     { id: 0, name: 'התחלה' },
     { id: 1, name: 'נטיעות בארץ ישראל' },
     { id: 2, name: 'שמירה על הסביבה' },
-    { id: 3, name: 'חגיגת ביכורים' },
-    { id: 4, name: 'אהבת הארץ' },
+    { id: 3, name: 'ברכות ושבעת המינים' },
+    { id: 4, name: 'העצים ושימושיהן' },
     { id: 5, name: 'סיום' }
   ];
 

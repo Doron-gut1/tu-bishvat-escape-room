@@ -1,5 +1,3 @@
-// src/components/stages/Stage3/components/BlessingGame/OrderByLand.jsx
-
 import React, { useState, useEffect } from 'react';
 import { FULL_VERSE } from '../../data/blessings';
 
@@ -8,20 +6,41 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [initialSpecies, setInitialSpecies] = useState([]);
+  const [selectedSpecies, setSelectedSpecies] = useState(null);
 
-  const availableSpecies = Object.values(species).filter(s => s.orderRank !== null);
+  // זיהוי אם מדובר במובייל או במחשב
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
-    const shuffledSpecies = [...availableSpecies].sort(() => Math.random() - 0.5);
+    // סינון המינים כך שיתקבלו רק המינים עם orderRank לא-null
+    const validSpecies = Object.values(species).filter(s => s.orderRank !== null);
+  
+    // סידור אקראי של המינים לאחר הסינון
+    const shuffledSpecies = [...validSpecies].sort(() => Math.random() - 0.5);
+  
     setInitialSpecies(shuffledSpecies);
-  }, []);
+  }, [species]);
+  
 
   const getUnorderedSpecies = () => {
     return initialSpecies.filter(s => !orderedSpecies.includes(s.id));
   };
 
-  const handleDragStart = (index) => {
-    setDraggedIndex(index);
+  // מתודולוגיה למובייל של קליק (לא גרירה)
+  const handleSpeciesClick = (speciesId) => {
+    if (isMobile) {  // רק אם מדובר במובייל
+      const index = orderedSpecies.findIndex(id => id === speciesId);
+      if (index === -1) {
+        // אם המין לא נמצא בסדר, נוסיף אותו למיקום הראשון הפנוי
+        setOrderedSpecies([...orderedSpecies, speciesId]);
+      }
+    }
+  };
+
+  const handleDragStart = (speciesId) => {
+    if (!isMobile) {
+      setDraggedIndex(speciesId);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -100,10 +119,10 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
 
   const SpeciesBox = ({ item, isDraggable = true, isOrdered = false, index }) => (
     <div
-      draggable={isDraggable && !showExplanation}
+      draggable={!isMobile && isDraggable && !showExplanation}
       onDragStart={() => handleDragStart(index)}
-      className={`
-        p-3 rounded-lg text-center min-w-[100px] transition-all
+      onClick={() => handleSpeciesClick(item.id)} 
+      className={`p-3 rounded-lg text-center min-w-[100px] transition-all
         ${isDraggable ? 'cursor-grab hover:scale-105' : ''}
         ${showExplanation 
           ? isOrdered 
@@ -217,7 +236,6 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
             ולבסוף תאנה ורימון שרחוקים יותר.
           </p>
         </div>
-        
       )}
     </div>
   );

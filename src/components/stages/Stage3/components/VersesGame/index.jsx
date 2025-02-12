@@ -1,144 +1,164 @@
 // src/components/stages/Stage3/components/VersesGame/index.jsx
 
 import React, { useState } from 'react';
-import { BIKURIM_VERSES, VERSES_SPECIES_CONNECTION } from '../../data/verses';
+import { BIKURIM_VERSES } from '../../data/verses';
 
 const VersesGame = ({ onComplete }) => {
   const [currentVerse, setCurrentVerse] = useState(0);
-  const [selectedPart, setSelectedPart] = useState(null);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [showError, setShowError] = useState(false);
   const [score, setScore] = useState(0);
 
-  const handlePartSelect = (partIndex) => {
-    if (!isCorrect) {
-      setSelectedPart(partIndex);
-      setShowError(false);
+  const verse = BIKURIM_VERSES[currentVerse];
+
+  const handleAnswerChange = (e) => {
+    setUserAnswer(e.target.value);
+    if (isAnswerChecked) {
+      setIsAnswerChecked(false);
     }
   };
 
   const checkAnswer = () => {
-    const verse = BIKURIM_VERSES[currentVerse];
-    const selected = verse.parts[selectedPart];
-    
-    if (selected.missing) {
-      setIsCorrect(true);
+    const correct = userAnswer.trim() === verse.missingWord;
+    setIsCorrect(correct);
+    setIsAnswerChecked(true);
+    if (correct) {
       setScore(score + 5);
-    } else {
-      setShowError(true);
     }
   };
 
-  const handleNextVerse = () => {
-    if (currentVerse < BIKURIM_VERSES.length - 1) {
-      setCurrentVerse(currentVerse + 1);
-      setSelectedPart(null);
-      setIsCorrect(false);
-      setShowError(false);
-    } else {
+  const handleNext = () => {
+    if (currentVerse === BIKURIM_VERSES.length - 1) {
       onComplete(score);
+    } else {
+      setCurrentVerse(currentVerse + 1);
+      setUserAnswer('');
+      setIsAnswerChecked(false);
+      setIsCorrect(false);
     }
   };
 
-  const handleTryAgain = () => {
-    setSelectedPart(null);
-    setShowError(false);
+  const tryAgain = () => {
+    setUserAnswer('');
+    setIsAnswerChecked(false);
   };
 
-  const progress = ((currentVerse + (isCorrect ? 1 : 0)) / BIKURIM_VERSES.length) * 100;
+  const renderVerse = () => {
+    return (
+      <div className="text-lg font-bold mb-4 text-right" dir="rtl">
+        {verse.text.split('___').map((part, index, array) => (
+          <React.Fragment key={index}>
+            {part}
+            {index < array.length - 1 && (
+              <div className="inline-block mx-2 border-2 border-dashed border-gray-400 px-4 py-1 min-w-[100px] rounded bg-gray-50">
+                {isAnswerChecked ? (
+                  <span className={isCorrect ? "text-green-600" : "text-red-600"}>
+                    {userAnswer || "___"}
+                  </span>
+                ) : (
+                  <span className="text-gray-400">___</span>
+                )}
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      {/* סרגל התקדמות */}
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div 
-          className="bg-green-500 h-2 rounded-full transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
+    <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-lg">
+      {/* התקדמות */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-gray-600">פסוק {currentVerse + 1} מתוך {BIKURIM_VERSES.length}</span>
+          <span className="text-gray-600">ניקוד: {score}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-green-500 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${((currentVerse) / BIKURIM_VERSES.length) * 100}%` }}
+          />
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
-        <div className="text-center mb-6">
-          <h3 className="text-xl md:text-2xl font-bold text-green-800 mb-2">
-            פסוקי הביכורים
-          </h3>
-          <p className="text-gray-600">
-            השלימו את המילים החסרות בפסוקי הביכורים
-          </p>
-        </div>
+      {/* מקור */}
+      <div className="text-center mb-4">
+        <p className="text-gray-600">{verse.source}</p>
+      </div>
 
-        {/* הפסוק */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          {BIKURIM_VERSES[currentVerse].parts.map((part, index) => (
-            <div
-              key={index}
-              onClick={() => handlePartSelect(index)}
+      {/* שאלה */}
+      <div className="bg-yellow-50 p-4 rounded-lg mb-4">
+        {renderVerse()}
+        <div className="space-y-4">
+          <div className="text-center text-gray-700">{verse.hint}</div>
+          <div className="flex justify-center">
+            <input
+              type="text"
+              value={userAnswer}
+              onChange={handleAnswerChange}
+              disabled={isAnswerChecked && isCorrect}
+              dir="rtl"
+              placeholder="הכנס את המילה החסרה..."
               className={`
-                p-3 rounded-lg cursor-pointer transition-all text-lg md:text-xl
-                ${part.missing ? 'bg-yellow-100 min-w-[100px]' : ''}
-                ${selectedPart === index ? 'ring-2 ring-green-500' : ''}
+                w-48 px-4 py-2 text-center border-2 rounded-lg text-lg
+                ${isAnswerChecked 
+                  ? isCorrect
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-red-500 bg-red-50'
+                  : 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                }
               `}
-            >
-              {part.text || '_____'}
-            </div>
-          ))}
-        </div>
-
-        {/* הסבר */}
-        <div className="mb-6">
-          <p className="text-gray-700">
-            {BIKURIM_VERSES[currentVerse].explanation}
-          </p>
-        </div>
-
-        {/* הודעת שגיאה */}
-        {showError && (
-          <div className="mb-6 p-4 bg-red-50 rounded-lg">
-            <p className="text-red-700">זה לא החלק החסר בפסוק, נסה שוב!</p>
+            />
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* כפתורים */}
-        <div className="flex justify-center space-x-4">
-          {isCorrect ? (
+      {/* כפתורי פעולה */}
+      <div className="flex justify-center gap-4 mt-6">
+        {!isAnswerChecked ? (
+          <button
+            onClick={checkAnswer}
+            disabled={!userAnswer.trim()}
+            className={`
+              px-6 py-2 rounded-lg
+              ${userAnswer.trim()
+                ? 'bg-green-500 text-white hover:bg-green-600'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }
+            `}
+          >
+            בדוק תשובה
+          </button>
+        ) : (
+          isCorrect ? (
             <button
-              onClick={handleNextVerse}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+              onClick={handleNext}
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
               {currentVerse === BIKURIM_VERSES.length - 1 ? 'סיים' : 'המשך לפסוק הבא'}
             </button>
-          ) : showError ? (
+          ) : (
             <button
-              onClick={handleTryAgain}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+              onClick={tryAgain}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             >
               נסה שוב
             </button>
-          ) : (
-            <button
-              onClick={checkAnswer}
-              disabled={selectedPart === null}
-              className={`
-                px-6 py-3 rounded-lg transition-colors
-                ${selectedPart !== null
-                  ? 'bg-green-500 text-white hover:bg-green-600'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }
-              `}
-            >
-              בדוק תשובה
-            </button>
-          )}
-        </div>
-
-        {/* ניקוד */}
-        <div className="mt-6 text-center text-gray-600">
-          <p>ניקוד: {score} נקודות</p>
-          <p className="text-sm">
-            פסוק {currentVerse + 1} מתוך {BIKURIM_VERSES.length}
-          </p>
-        </div>
+          )
+        )}
       </div>
+
+      {/* הודעות משוב */}
+      {isAnswerChecked && (
+        <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
+          <p className="font-bold text-center">
+            {isCorrect ? 'כל הכבוד! 🎉' : 'לא בדיוק... נסה שוב! 🤔'}
+          </p>
+          {isCorrect && <p className="text-center mt-2">{verse.explanation}</p>}
+        </div>
+      )}
     </div>
   );
 };

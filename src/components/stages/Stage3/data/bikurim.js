@@ -1,3 +1,5 @@
+// src/components/stages/Stage3/data/bikurim.js
+
 // תחנות במסע הביכורים
 export const JOURNEY_STATIONS = [
   {

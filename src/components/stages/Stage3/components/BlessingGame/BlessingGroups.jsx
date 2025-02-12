@@ -5,11 +5,18 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedSpecies, setDraggedSpecies] = useState(null);
   const [showError, setShowError] = useState(false);
+  const [selectedSpecies, setSelectedSpecies] = useState(null);
+
+  // זיהוי אם מדובר במובייל
+  const isMobile = window.innerWidth <= 768;
 
   const speciesArray = Object.values(species);
 
+  // פעולת גרירה
   const handleDragStart = (speciesId) => {
-    setDraggedSpecies(speciesId);
+    if (!isMobile) {  // רק אם לא במובייל
+      setDraggedSpecies(speciesId);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -25,7 +32,24 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
     }));
 
     setDraggedSpecies(null);
-    setShowError(false); // מנקה שגיאות קודמות בעת הזזה
+    setShowError(false);
+  };
+
+  // פעולת לחיצה במובייל
+  const handleSpeciesClick = (speciesId) => {
+    if (isMobile) {  // רק אם מדובר במובייל
+      setSelectedSpecies(speciesId);  // בוחרים את המין
+    }
+  };
+
+  const handleGroupClick = (groupId) => {
+    if (isMobile && selectedSpecies) {  // אם בחרנו מין במובייל
+      setAssignments(prev => ({
+        ...prev,
+        [selectedSpecies]: groupId
+      }));
+      setSelectedSpecies(null);  // מנקים את הבחירה
+    }
   };
 
   const checkAnswers = () => {
@@ -90,8 +114,9 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
           return (
             <div
               key={item.id}
-              draggable={!showExplanation}
+              draggable={!isMobile && !showExplanation}  // אפשר לגרור רק אם לא במובייל
               onDragStart={() => handleDragStart(item.id)}
+              onClick={() => handleSpeciesClick(item.id)}  // אפשר לבחור אם במובייל
               className={`
                 p-3 rounded-lg cursor-grab text-center min-w-[100px]
                 transition-all transform hover:scale-105
@@ -124,6 +149,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
               key={group.id}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(group.id)}
+              onClick={() => handleGroupClick(group.id)}  // אפשר ללחוץ על הקבוצה במובייל
               className="p-4 rounded-lg bg-green-50 space-y-4"
             >
               <h4 className="font-bold text-center text-green-800">
@@ -134,7 +160,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
                 {assignedSpecies.map(item => (
                   <div
                     key={item.id}
-                    draggable={!showExplanation}
+                    draggable={!isMobile && !showExplanation}  // אפשר לגרור רק אם לא במובייל
                     onDragStart={() => handleDragStart(item.id)}
                     className="text-center p-2 cursor-grab"
                   >

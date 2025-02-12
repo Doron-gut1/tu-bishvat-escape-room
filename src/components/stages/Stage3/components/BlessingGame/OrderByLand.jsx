@@ -1,3 +1,5 @@
+// src/components/stages/Stage3/components/BlessingGame/OrderByLand.jsx
+
 import React, { useState, useEffect } from 'react';
 import { FULL_VERSE } from '../../data/blessings';
 
@@ -5,53 +7,34 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const [orderedSpecies, setOrderedSpecies] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [showError, setShowError] = useState(false);
-  const [unorderedSpecies, setUnorderedSpecies] = useState([]);
+  const [initialSpecies, setInitialSpecies] = useState([]);
 
-  // אתחול המינים בסדר רנדומלי
+  const availableSpecies = Object.values(species).filter(s => s.orderRank !== null);
+
   useEffect(() => {
-    const initialSpecies = Object.values(species)
-      .filter(s => s.orderRank !== null)
-      .sort(() => Math.random() - 0.5);
-    setUnorderedSpecies(initialSpecies);
-  }, [species]);
+    const shuffledSpecies = [...availableSpecies].sort(() => Math.random() - 0.5);
+    setInitialSpecies(shuffledSpecies);
+  }, []);
 
   const getUnorderedSpecies = () => {
-    return unorderedSpecies.filter(s => !orderedSpecies.includes(s.id));
+    return initialSpecies.filter(s => !orderedSpecies.includes(s.id));
   };
 
-  const handleDragStart = (e, index) => {
-    // מונע גרירת תמונות במובייל
-    if (e.type === 'touchstart') {
-      e.preventDefault();
-    }
+  const handleDragStart = (index) => {
     setDraggedIndex(index);
   };
 
-  const handleDragOver = (e) => {ז
+  const handleDragOver = (e) => {
     e.preventDefault();
   };
 
-  const handleDrop = (targetIndex, fromOrdered = false) => {
+  const handleDrop = (targetIndex) => {
     if (draggedIndex === null) return;
 
-    let newOrder = [...orderedSpecies];
-    let itemToMove;
-
-    if (fromOrdered) {
-      // הזזה מתוך הרשימה המסודרת
-      itemToMove = orderedSpecies[draggedIndex];
-      newOrder = newOrder.filter((_, idx) => idx !== draggedIndex);
-    } else {
-      // הזזה מהרשימה הלא מסודרת
-      itemToMove = getUnorderedSpecies()[draggedIndex].id;
-    }
-
-    // הכנסה למיקום החדש
-    newOrder.splice(targetIndex, 0, itemToMove);
+    const newOrder = [...orderedSpecies];
+    newOrder.splice(targetIndex, 0, getUnorderedSpecies()[draggedIndex].id);
     setOrderedSpecies(newOrder);
     setDraggedIndex(null);
-    setShowError(false);
   };
 
   const checkOrder = () => {
@@ -59,48 +42,39 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
       (speciesId, index) => speciesId === correctOrder[index]
     );
 
+    setShowExplanation(true);
+
     if (isCorrect) {
-      setShowExplanation(true);
-      setShowError(false);
       onComplete(5);
-    } else {
-      setShowError(true);
     }
   };
 
-  const handleTryAgain = () => {
+  const handleReset = () => {
     setOrderedSpecies([]);
-    setShowError(false);
-  };
-
-  // מטפל באירועי מגע למובייל
-  const handleTouch = (e, index, type) => {
-    e.preventDefault();
-    if (type === 'start') {
-      handleDragStart({ type: 'touchstart' }, index);
-    } else if (type === 'end' && draggedIndex !== null) {
-      const touch = e.changedTouches[0];
-      const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-      const dropTarget = elements.find(el => el.dataset.dropTarget);
-      if (dropTarget) {
-        handleDrop(parseInt(dropTarget.dataset.index), dropTarget.dataset.fromOrdered === 'true');
-      }
-    }
+    setShowExplanation(false);
+    setInitialSpecies([...initialSpecies].sort(() => Math.random() - 0.5));
   };
 
   const renderSpeciesImage = (item) => {
+    if (item.id === 'wine' && item.alternateImage) {
+      return (
+        <span className="text-4xl" role="img" aria-label={item.alternateName || item.name}>
+          {item.alternateImage.src}
+        </span>
+      );
+    }
+
     if (item.image.type === 'image') {
       return (
         <img 
           src={item.image.src} 
           alt={item.name} 
-          className="w-12 h-12 object-contain pointer-events-none"
-          draggable="false"
+          className="w-12 h-12 object-contain"
         />
       );
     } else if (item.image.type === 'emoji') {
       return (
-        <span className="text-4xl pointer-events-none" role="img" aria-label={item.name}>
+        <span className="text-4xl" role="img" aria-label={item.name}>
           {item.image.src}
         </span>
       );
@@ -108,16 +82,29 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
     return null;
   };
 
+  const renderVerse = () => {
+    const parts = FULL_VERSE.split(' ');
+    return (
+      <div className="text-center text-lg mb-6 p-4 bg-yellow-50 rounded-lg">
+        {parts.map((word, index) => (
+          <span
+            key={index}
+            className={word === 'ארץ' ? 'font-bold text-green-700' : ''}
+          >
+            {word}{' '}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   const SpeciesBox = ({ item, isDraggable = true, isOrdered = false, index }) => (
     <div
-      draggable={!showExplanation && isDraggable}
-      onDragStart={(e) => handleDragStart(e, index)}
-      onTouchStart={(e) => handleTouch(e, index, 'start')}
-      onTouchEnd={(e) => handleTouch(e, index, 'end')}
-      data-from-ordered={isOrdered}
+      draggable={isDraggable && !showExplanation}
+      onDragStart={() => handleDragStart(index)}
       className={`
-        p-3 rounded-lg text-center min-w-[100px] transition-all touch-manipulation
-        ${isDraggable && !showExplanation ? 'cursor-grab hover:scale-105' : ''}
+        p-3 rounded-lg text-center min-w-[100px] transition-all
+        ${isDraggable ? 'cursor-grab hover:scale-105' : ''}
         ${showExplanation 
           ? isOrdered 
             ? item.orderRank === index + 1
@@ -131,7 +118,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
       <div className="mb-2">
         {renderSpeciesImage(item)}
       </div>
-      <div className="font-bold">{item.name}</div>
+      <div className="font-bold">{item.alternateName || item.name}</div>
       {showExplanation && (
         <p className="text-sm mt-2 text-gray-600">
           {item.explanation}
@@ -142,7 +129,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
 
   return (
     <div className="space-y-6" dir="rtl">
-     {/*  {renderVerse()} */}
+      {renderVerse()}
 
       {/* אזור המינים הלא מסודרים */}
       {!showExplanation && getUnorderedSpecies().length > 0 && (
@@ -172,15 +159,13 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
               <div
                 key={index}
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(index, true)}
-                data-drop-target="true"
-                data-index={index}
+                onDrop={() => handleDrop(index)}
                 className="border-2 border-dashed border-green-200 rounded-lg p-2 min-h-[100px] flex items-center justify-center"
               >
                 {currentSpecies && (
                   <SpeciesBox 
                     item={currentSpecies} 
-                    isDraggable={!showExplanation}
+                    isDraggable={false}
                     isOrdered={true}
                     index={index}
                   />
@@ -193,28 +178,35 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
 
       {/* כפתורי פעולה */}
       <div className="flex justify-center space-x-4 rtl:space-x-reverse">
-        {showError && (
+        {!showExplanation && (
           <button
-            onClick={handleTryAgain}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            onClick={handleReset}
+            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
           >
-            נסה שוב
+            התחל מחדש
           </button>
         )}
 
-        {!showExplanation && orderedSpecies.length === 5 && !showError && (
+        {!showExplanation && orderedSpecies.length === 5 && (
           <button
             onClick={checkOrder}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
             בדוק תשובות
-          </button>
+          </button>    
         )}
+        
       </div>
 
       {/* הסבר */}
       {showExplanation && (
         <div className="p-4 rounded-lg bg-green-50 mt-6">
+          <button
+            onClick={handleReset}
+            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          >
+            התחל מחדש
+          </button>
           <h4 className="font-bold text-center text-xl mb-4">
             סדר קדימה בברכות 🌱
           </h4>
@@ -225,6 +217,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
             ולבסוף תאנה ורימון שרחוקים יותר.
           </p>
         </div>
+        
       )}
     </div>
   );

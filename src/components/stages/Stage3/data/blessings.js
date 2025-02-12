@@ -49,6 +49,7 @@ export const SPECIES = {
   wine: {
     id: 'wine',
     name: 'יין',
+    alternateName: 'ענבים',
     blessing: 'hagafen',
     orderRank: 3,
     explanation: 'הקרוב ביותר למילה "ארץ" הראשונה',
@@ -56,6 +57,10 @@ export const SPECIES = {
     image: {
       type: 'emoji',
       src: '🍷'
+    },
+    alternateImage: {     
+      type: 'emoji',
+      src: '🍇'
     }
   },
   fig: {

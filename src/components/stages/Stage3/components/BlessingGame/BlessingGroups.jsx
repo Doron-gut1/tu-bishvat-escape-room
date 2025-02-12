@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [assignments, setAssignments] = useState({});
@@ -6,15 +6,23 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [draggedSpecies, setDraggedSpecies] = useState(null);
   const [showError, setShowError] = useState(false);
   const [selectedSpecies, setSelectedSpecies] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // זיהוי אם מדובר במובייל
-  const isMobile = window.innerWidth <= 768;
+  // בדיקת מובייל בטעינה ובשינוי גודל המסך
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const speciesArray = Object.values(species);
 
   // פעולת גרירה
   const handleDragStart = (speciesId) => {
-    if (!isMobile) {  // רק אם לא במובייל
+    if (!isMobile) {
       setDraggedSpecies(speciesId);
     }
   };
@@ -25,7 +33,13 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
   const handleDrop = (groupId) => {
     if (!draggedSpecies) return;
-
+    
+    // בודקים אם המין כבר משויך לקבוצה אחרת
+    const isAlreadyAssigned = Object.entries(assignments).some(
+      ([id, group]) => id !== draggedSpecies && group === groupId
+    );
+    
+    // מעדכנים את השיוך בכל מקרה
     setAssignments(prev => ({
       ...prev,
       [draggedSpecies]: groupId
@@ -35,20 +49,39 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
     setShowError(false);
   };
 
-  // פעולת לחיצה במובייל
+  // פעולות מובייל
   const handleSpeciesClick = (speciesId) => {
-    if (isMobile) {  // רק אם מדובר במובייל
-      setSelectedSpecies(speciesId);  // בוחרים את המין
+    if (isMobile) {
+      // אם המין כבר משוייך, נאפשר להזיז אותו
+      if (assignments[speciesId]) {
+        const wasAssigned = assignments[speciesId];
+        setAssignments(prev => {
+          const newAssignments = { ...prev };
+          delete newAssignments[speciesId];
+          return newAssignments;
+        });
+        setSelectedSpecies(speciesId);
+      } else {
+        setSelectedSpecies(prev => prev === speciesId ? null : speciesId);
+      }
     }
   };
 
   const handleGroupClick = (groupId) => {
-    if (isMobile && selectedSpecies) {  // אם בחרנו מין במובייל
+    if (isMobile && selectedSpecies) {
+      // לוודא שהמין לא כבר משויך לקבוצה אחרת
+      const isAlreadyAssigned = Object.entries(assignments).some(
+        ([id, group]) => id !== selectedSpecies && group === groupId
+      );
+      
+      // אם המין כבר משויך לקבוצה אחרת, נעדכן את השיוך שלו
       setAssignments(prev => ({
         ...prev,
         [selectedSpecies]: groupId
       }));
-      setSelectedSpecies(null);  // מנקים את הבחירה
+      
+      setSelectedSpecies(null);
+      setShowError(false);
     }
   };
 
@@ -75,9 +108,11 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
     }
   };
 
-  const handleTryAgain = () => {
+  const handleReset = () => {
     setAssignments({});
     setShowError(false);
+    setSelectedSpecies(null);
+    setShowExplanation(false);
   };
 
   const isSpeciesCorrect = (speciesId) => {
@@ -106,27 +141,32 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
 
   return (
     <div className="space-y-8" dir="rtl">
+      {/* אזור המינים הלא משוייכים */}
       <div className="flex flex-wrap justify-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
         {speciesArray.map((item) => {
           const isAssigned = assignments[item.id];
           const isCorrect = isSpeciesCorrect(item.id);
+          const isSelected = selectedSpecies === item.id;
           
           return (
             <div
               key={item.id}
-              draggable={!isMobile && !showExplanation}  // אפשר לגרור רק אם לא במובייל
+              draggable={!isMobile && !showExplanation}
               onDragStart={() => handleDragStart(item.id)}
-              onClick={() => handleSpeciesClick(item.id)}  // אפשר לבחור אם במובייל
+              onClick={() => handleSpeciesClick(item.id)}
               className={`
-                p-3 rounded-lg cursor-grab text-center min-w-[100px]
-                transition-all transform hover:scale-105
+                p-3 rounded-lg text-center min-w-[100px]
+                transition-all transform
+                ${!isAssigned && 'hover:scale-105'}
                 ${isAssigned && !showError ? 'opacity-50' : 'bg-gray-100'}
+                ${isSelected ? 'ring-4 ring-blue-500 shadow-lg scale-105' : ''}
                 ${showExplanation && isCorrect !== null
                   ? isCorrect
                     ? 'bg-green-100 border-2 border-green-500'
                     : 'bg-red-100 border-2 border-red-500'
                   : ''
                 }
+                ${isMobile ? 'cursor-pointer active:scale-95' : 'cursor-grab'}
               `}
             >
               <div className="mb-2">
@@ -138,6 +178,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         })}
       </div>
 
+      {/* קבוצות הברכות */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Object.values(blessingGroups).map((group) => {
           const assignedSpecies = speciesArray.filter(
@@ -149,20 +190,33 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
               key={group.id}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(group.id)}
-              onClick={() => handleGroupClick(group.id)}  // אפשר ללחוץ על הקבוצה במובייל
-              className="p-4 rounded-lg bg-green-50 space-y-4"
+              onClick={() => handleGroupClick(group.id)}
+              className={`
+                p-4 rounded-lg space-y-4
+                ${selectedSpecies ? 'bg-blue-50 cursor-pointer' : 'bg-green-50'}
+                transition-colors duration-300
+              `}
             >
               <h4 className="font-bold text-center text-green-800">
                 {group.name}
               </h4>
               
-              <div className="min-h-[100px] border-2 border-dashed border-green-200 rounded-lg p-2">
+              <div className={`
+                min-h-[100px] border-2 border-dashed rounded-lg p-2
+                ${selectedSpecies ? 'border-blue-300 bg-blue-50' : 'border-green-200'}
+              `}>
                 {assignedSpecies.map(item => (
                   <div
                     key={item.id}
-                    draggable={!isMobile && !showExplanation}  // אפשר לגרור רק אם לא במובייל
-                    onDragStart={() => handleDragStart(item.id)}
-                    className="text-center p-2 cursor-grab"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSpeciesClick(item.id);
+                    }}
+                    className={`
+                      text-center p-2
+                      ${isMobile ? 'cursor-pointer active:scale-95' : 'cursor-grab'}
+                      transition-transform
+                    `}
                   >
                     <div className="mb-2">
                       {renderSpeciesImage(item)}
@@ -182,17 +236,16 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         })}
       </div>
 
-      <div className="flex justify-center space-x-4 rtl:space-x-reverse">
-        {showError && (
-          <button
-            onClick={handleTryAgain}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-          >
-            נסה שוב
-          </button>
-        )}
+      {/* כפתורי פעולה */}
+      <div className="flex justify-center items-center gap-4 flex-wrap">
+        <button
+          onClick={handleReset}
+          className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+        >
+          נסה מחדש
+        </button>
 
-        {!showExplanation && !showError && (
+        {!showExplanation && (
           <button
             onClick={checkAnswers}
             disabled={Object.keys(assignments).length !== speciesArray.length}
@@ -209,6 +262,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         )}
       </div>
 
+      {/* הסבר */}
       {showExplanation && (
         <div className="p-4 rounded-lg bg-green-50 mt-6">
           <h4 className="font-bold text-center text-xl mb-4">
@@ -220,6 +274,15 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
             הגפן קודמת כי היא ברכה מיוחדת,
             ואחריהם ברכת העץ לשאר הפירות.
           </p>
+        </div>
+      )}
+      
+      {/* הודעת הדרכה למובייל */}
+      {isMobile && !showExplanation && (
+        <div className="text-center text-sm text-gray-500 mt-4">
+          {selectedSpecies 
+            ? "לחץ על שם הברכה כדי למקם את המין הנבחר"
+            : " לחץ על אחד המינים כדי לבחור אותו"}
         </div>
       )}
     </div>

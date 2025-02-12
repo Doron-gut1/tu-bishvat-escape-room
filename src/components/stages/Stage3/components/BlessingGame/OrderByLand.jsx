@@ -7,39 +7,64 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [initialSpecies, setInitialSpecies] = useState([]);
   const [selectedSpecies, setSelectedSpecies] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [swapMode, setSwapMode] = useState(false);
+  const [firstSwapSelection, setFirstSwapSelection] = useState(null);
 
-  // זיהוי אם מדובר במובייל או במחשב
-  const isMobile = window.innerWidth <= 768;
+  // בדיקת מובייל בטעינה ובשינוי גודל המסך
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
-    // סינון המינים כך שיתקבלו רק המינים עם orderRank לא-null
     const validSpecies = Object.values(species).filter(s => s.orderRank !== null);
-  
-    // סידור אקראי של המינים לאחר הסינון
     const shuffledSpecies = [...validSpecies].sort(() => Math.random() - 0.5);
-  
     setInitialSpecies(shuffledSpecies);
   }, [species]);
-  
 
   const getUnorderedSpecies = () => {
     return initialSpecies.filter(s => !orderedSpecies.includes(s.id));
   };
 
-  // מתודולוגיה למובייל של קליק (לא גרירה)
+  // טיפול במיקום מינים במובייל
   const handleSpeciesClick = (speciesId) => {
-    if (isMobile) {  // רק אם מדובר במובייל
-      const index = orderedSpecies.findIndex(id => id === speciesId);
-      if (index === -1) {
-        // אם המין לא נמצא בסדר, נוסיף אותו למיקום הראשון הפנוי
+    if (!isMobile || showExplanation) return;
+
+    if (swapMode) {
+      // מצב החלפה
+      if (firstSwapSelection === null) {
+        setFirstSwapSelection(speciesId);
+      } else {
+        // מבצע החלפה
+        const newOrder = [...orderedSpecies];
+        const firstIndex = newOrder.indexOf(firstSwapSelection);
+        const secondIndex = newOrder.indexOf(speciesId);
+        
+        if (firstIndex !== -1 && secondIndex !== -1) {
+          // החלפה בין שני מיקומים
+          [newOrder[firstIndex], newOrder[secondIndex]] = [newOrder[secondIndex], newOrder[firstIndex]];
+        }
+        
+        setOrderedSpecies(newOrder);
+        setFirstSwapSelection(null);
+        setSwapMode(false);
+      }
+    } else {
+      // מצב הוספה רגיל
+      if (!orderedSpecies.includes(speciesId)) {
         setOrderedSpecies([...orderedSpecies, speciesId]);
       }
     }
   };
 
-  const handleDragStart = (speciesId) => {
+  const handleDragStart = (index) => {
     if (!isMobile) {
-      setDraggedIndex(speciesId);
+      setDraggedIndex(index);
     }
   };
 
@@ -49,7 +74,6 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
 
   const handleDrop = (targetIndex) => {
     if (draggedIndex === null) return;
-
     const newOrder = [...orderedSpecies];
     newOrder.splice(targetIndex, 0, getUnorderedSpecies()[draggedIndex].id);
     setOrderedSpecies(newOrder);
@@ -60,9 +84,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
     const isCorrect = orderedSpecies.every(
       (speciesId, index) => speciesId === correctOrder[index]
     );
-
     setShowExplanation(true);
-
     if (isCorrect) {
       onComplete(5);
     }
@@ -71,30 +93,41 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const handleReset = () => {
     setOrderedSpecies([]);
     setShowExplanation(false);
+    setSwapMode(false);
+    setFirstSwapSelection(null);
     setInitialSpecies([...initialSpecies].sort(() => Math.random() - 0.5));
   };
 
-  const renderSpeciesImage = (item) => {
-    if (item.id === 'wine' && item.alternateImage) {
-      return (
-        <span className="text-4xl" role="img" aria-label={item.alternateName || item.name}>
-          {item.alternateImage.src}
-        </span>
-      );
+  const removeFromOrder = (speciesId) => {
+    if (!showExplanation) {
+      setOrderedSpecies(orderedSpecies.filter(id => id !== speciesId));
     }
+  };
 
-    if (item.image.type === 'image') {
+  const renderSpeciesImage = (item) => {
+    // בחירת התמונה המתאימה - אם זה יין אז משתמשים בתמונה החלופית
+    const useAlternate = item.id === 'wine';
+    const imageData = useAlternate ? item.alternateImage : item.image;
+    const displayName = useAlternate ? item.alternateName : item.name;
+  
+    console.log('Rendering species:', {
+      id: item.id,
+      imageData,
+      displayName
+    });
+  
+    if (imageData.type === 'image') {
       return (
         <img 
-          src={item.image.src} 
-          alt={item.name} 
+          src={imageData.src}
+          alt={displayName}
           className="w-12 h-12 object-contain"
         />
       );
-    } else if (item.image.type === 'emoji') {
+    } else if (imageData.type === 'emoji') {
       return (
-        <span className="text-4xl" role="img" aria-label={item.name}>
-          {item.image.src}
+        <span className="text-4xl" role="img" aria-label={displayName}>
+          {imageData.src}
         </span>
       );
     }
@@ -121,27 +154,44 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
     <div
       draggable={!isMobile && isDraggable && !showExplanation}
       onDragStart={() => handleDragStart(index)}
-      onClick={() => handleSpeciesClick(item.id)} 
-      className={`p-3 rounded-lg text-center min-w-[100px] transition-all
-        ${isDraggable ? 'cursor-grab hover:scale-105' : ''}
+      onClick={() => handleSpeciesClick(item.id)}
+      className={`
+        p-3 rounded-lg text-center min-w-[100px] transition-all
+        ${isMobile ? 'active:scale-95' : isDraggable ? 'cursor-grab hover:scale-105' : ''}
+        ${isOrdered && firstSwapSelection === item.id ? 'ring-4 ring-blue-500 scale-105' : ''}
         ${showExplanation 
           ? isOrdered 
             ? item.orderRank === index + 1
               ? 'bg-green-100 border-2 border-green-500'
               : 'bg-red-100 border-2 border-red-500'
             : 'bg-gray-100'
-          : 'bg-gray-100'
+          : swapMode && isOrdered
+            ? 'bg-blue-50 hover:bg-blue-100'
+            : 'bg-gray-100'
         }
       `}
     >
       <div className="mb-2">
         {renderSpeciesImage(item)}
       </div>
-      <div className="font-bold">{item.alternateName || item.name}</div>
+      <div className="font-bold">
+        {item.id === 'wine' ? item.alternateName : item.name}
+      </div>
       {showExplanation && (
         <p className="text-sm mt-2 text-gray-600">
           {item.explanation}
         </p>
+      )}
+      {isOrdered && !showExplanation && isMobile && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeFromOrder(item.id);
+          }}
+          className="mt-2 text-sm text-red-600 hover:text-red-700"
+        >
+          הסר
+        </button>
       )}
     </div>
   );
@@ -169,7 +219,10 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
         <h4 className="text-center font-bold text-gray-700">
           סדרו את הפירות לפי סדר קדימה
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 p-4 bg-green-50 rounded-lg min-h-[150px]">
+        <div className={`
+          grid gap-2 p-4 bg-green-50 rounded-lg min-h-[150px]
+          ${isMobile ? 'grid-cols-1' : 'grid-cols-5'}
+        `}>
           {Array.from({ length: 5 }).map((_, index) => {
             const speciesId = orderedSpecies[index];
             const currentSpecies = speciesId ? species[speciesId] : null;
@@ -179,15 +232,21 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
                 key={index}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(index)}
-                className="border-2 border-dashed border-green-200 rounded-lg p-2 min-h-[100px] flex items-center justify-center"
+                className={`
+                  border-2 border-dashed rounded-lg p-2 min-h-[100px] 
+                  flex items-center justify-center
+                  ${swapMode ? 'border-blue-200' : 'border-green-200'}
+                `}
               >
-                {currentSpecies && (
+                {currentSpecies ? (
                   <SpeciesBox 
                     item={currentSpecies} 
                     isDraggable={false}
                     isOrdered={true}
                     index={index}
                   />
+                ) : (
+                  <span className="text-gray-400">מיקום {index + 1}</span>
                 )}
               </div>
             );
@@ -196,14 +255,33 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
       </div>
 
       {/* כפתורי פעולה */}
-      <div className="flex justify-center space-x-4 rtl:space-x-reverse">
+      <div className="flex justify-center gap-4 flex-wrap">
         {!showExplanation && (
-          <button
-            onClick={handleReset}
-            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-          >
-            התחל מחדש
-          </button>
+          <>
+            <button
+              onClick={handleReset}
+              className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              התחל מחדש
+            </button>
+
+            {isMobile && orderedSpecies.length >= 2 && (
+              <button
+                onClick={() => {
+                  setSwapMode(!swapMode);
+                  setFirstSwapSelection(null);
+                }}
+                className={`
+                  px-6 py-2 rounded-lg
+                  ${swapMode 
+                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                    : 'bg-gray-500 text-white hover:bg-gray-600'}
+                `}
+              >
+                {swapMode ? 'בטל החלפה' : 'החלף מיקום'}
+              </button>
+            )}
+          </>
         )}
 
         {!showExplanation && orderedSpecies.length === 5 && (
@@ -214,7 +292,6 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
             בדוק תשובות
           </button>    
         )}
-        
       </div>
 
       {/* הסבר */}
@@ -222,7 +299,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
         <div className="p-4 rounded-lg bg-green-50 mt-6">
           <button
             onClick={handleReset}
-            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mb-4"
           >
             התחל מחדש
           </button>
@@ -235,6 +312,19 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
             אחריהם גפן שקרוב למילה "ארץ" הראשונה,
             ולבסוף תאנה ורימון שרחוקים יותר.
           </p>
+        </div>
+      )}
+
+      {/* הודעות עזרה למובייל */}
+      {isMobile && !showExplanation && (
+        <div className="text-center text-sm text-gray-500">
+          {swapMode 
+            ? firstSwapSelection 
+              ? 'בחר מין נוסף להחלפה'
+              : 'בחר מין ראשון להחלפה'
+            : orderedSpecies.length === 5 
+              ? 'לחץ על "החלף מיקום" כדי לשנות את הסדר'
+              : 'לחץ על המינים כדי להוסיף אותם לסדר'}
         </div>
       )}
     </div>

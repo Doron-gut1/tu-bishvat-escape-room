@@ -4,6 +4,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
   const [assignments, setAssignments] = useState({});
   const [showExplanation, setShowExplanation] = useState(false);
   const [draggedSpecies, setDraggedSpecies] = useState(null);
+  const [showError, setShowError] = useState(false);
 
   const speciesArray = Object.values(species);
 
@@ -24,6 +25,7 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
     }));
 
     setDraggedSpecies(null);
+    setShowError(false); // מנקה שגיאות קודמות בעת הזזה
   };
 
   const checkAnswers = () => {
@@ -41,13 +43,17 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
       correct = false;
     }
 
-    setShowExplanation(true);
-
     if (correct) {
-      setTimeout(() => {
-        onComplete(5);
-      }, 2000);
+      setShowExplanation(true);
+      onComplete(5);
+    } else {
+      setShowError(true);
     }
+  };
+
+  const handleTryAgain = () => {
+    setAssignments({});
+    setShowError(false);
   };
 
   const isSpeciesCorrect = (speciesId) => {
@@ -84,12 +90,12 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
           return (
             <div
               key={item.id}
-              draggable={!isAssigned && !showExplanation}
+              draggable={!showExplanation}
               onDragStart={() => handleDragStart(item.id)}
               className={`
                 p-3 rounded-lg cursor-grab text-center min-w-[100px]
                 transition-all transform hover:scale-105
-                ${isAssigned ? 'opacity-50' : 'bg-gray-100'}
+                ${isAssigned && !showError ? 'opacity-50' : 'bg-gray-100'}
                 ${showExplanation && isCorrect !== null
                   ? isCorrect
                     ? 'bg-green-100 border-2 border-green-500'
@@ -128,7 +134,9 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
                 {assignedSpecies.map(item => (
                   <div
                     key={item.id}
-                    className="text-center p-2"
+                    draggable={!showExplanation}
+                    onDragStart={() => handleDragStart(item.id)}
+                    className="text-center p-2 cursor-grab"
                   >
                     <div className="mb-2">
                       {renderSpeciesImage(item)}
@@ -148,8 +156,17 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
         })}
       </div>
 
-      {!showExplanation && (
-        <div className="text-center mt-6">
+      <div className="flex justify-center space-x-4 rtl:space-x-reverse">
+        {showError && (
+          <button
+            onClick={handleTryAgain}
+            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+          >
+            נסה שוב
+          </button>
+        )}
+
+        {!showExplanation && !showError && (
           <button
             onClick={checkAnswers}
             disabled={Object.keys(assignments).length !== speciesArray.length}
@@ -163,8 +180,8 @@ const BlessingGroups = ({ blessingGroups, species, onComplete }) => {
           >
             בדוק תשובות
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {showExplanation && (
         <div className="p-4 rounded-lg bg-green-50 mt-6">

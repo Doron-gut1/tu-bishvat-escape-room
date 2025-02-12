@@ -1,47 +1,57 @@
-// src/components/stages/Stage3/components/BlessingGame/OrderByLand.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FULL_VERSE } from '../../data/blessings';
 
 const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const [orderedSpecies, setOrderedSpecies] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
   const [showError, setShowError] = useState(false);
-  const [selectedSpecies, setSelectedSpecies] = useState(null);
+  const [unorderedSpecies, setUnorderedSpecies] = useState([]);
 
-  const availableSpecies = Object.values(species).filter(s => s.orderRank !== null);
+  // אתחול המינים בסדר רנדומלי
+  useEffect(() => {
+    const initialSpecies = Object.values(species)
+      .filter(s => s.orderRank !== null)
+      .sort(() => Math.random() - 0.5);
+    setUnorderedSpecies(initialSpecies);
+  }, [species]);
 
   const getUnorderedSpecies = () => {
-    return availableSpecies.filter(s => !orderedSpecies.includes(s.id));
+    return unorderedSpecies.filter(s => !orderedSpecies.includes(s.id));
   };
 
-  // מנגנון חדש לטיפול במובייל וטאצ'
-  const handleSpeciesClick = (speciesItem) => {
-    if (showExplanation) return;
-    
-    if (selectedSpecies === speciesItem.id) {
-      setSelectedSpecies(null);
-    } else {
-      setSelectedSpecies(speciesItem.id);
+  const handleDragStart = (e, index) => {
+    // מונע גרירת תמונות במובייל
+    if (e.type === 'touchstart') {
+      e.preventDefault();
     }
+    setDraggedIndex(index);
   };
 
-  const handlePositionClick = (position) => {
-    if (!selectedSpecies || showExplanation) return;
+  const handleDragOver = (e) => {ז
+    e.preventDefault();
+  };
 
-    const newOrder = [...orderedSpecies];
-    
-    // אם כבר יש פריט במיקום הזה, נחליף אותם
-    if (newOrder[position] !== undefined) {
-      const oldSpecies = newOrder[position];
-      newOrder[position] = selectedSpecies;
-      setSelectedSpecies(oldSpecies);
+  const handleDrop = (targetIndex, fromOrdered = false) => {
+    if (draggedIndex === null) return;
+
+    let newOrder = [...orderedSpecies];
+    let itemToMove;
+
+    if (fromOrdered) {
+      // הזזה מתוך הרשימה המסודרת
+      itemToMove = orderedSpecies[draggedIndex];
+      newOrder = newOrder.filter((_, idx) => idx !== draggedIndex);
     } else {
-      newOrder[position] = selectedSpecies;
-      setSelectedSpecies(null);
+      // הזזה מהרשימה הלא מסודרת
+      itemToMove = getUnorderedSpecies()[draggedIndex].id;
     }
-    
+
+    // הכנסה למיקום החדש
+    newOrder.splice(targetIndex, 0, itemToMove);
     setOrderedSpecies(newOrder);
+    setDraggedIndex(null);
+    setShowError(false);
   };
 
   const checkOrder = () => {
@@ -61,7 +71,21 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
   const handleTryAgain = () => {
     setOrderedSpecies([]);
     setShowError(false);
-    setSelectedSpecies(null);
+  };
+
+  // מטפל באירועי מגע למובייל
+  const handleTouch = (e, index, type) => {
+    e.preventDefault();
+    if (type === 'start') {
+      handleDragStart({ type: 'touchstart' }, index);
+    } else if (type === 'end' && draggedIndex !== null) {
+      const touch = e.changedTouches[0];
+      const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+      const dropTarget = elements.find(el => el.dataset.dropTarget);
+      if (dropTarget) {
+        handleDrop(parseInt(dropTarget.dataset.index), dropTarget.dataset.fromOrdered === 'true');
+      }
+    }
   };
 
   const renderSpeciesImage = (item) => {
@@ -70,12 +94,13 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
         <img 
           src={item.image.src} 
           alt={item.name} 
-          className="w-12 h-12 object-contain"
+          className="w-12 h-12 object-contain pointer-events-none"
+          draggable="false"
         />
       );
     } else if (item.image.type === 'emoji') {
       return (
-        <span className="text-4xl" role="img" aria-label={item.name}>
+        <span className="text-4xl pointer-events-none" role="img" aria-label={item.name}>
           {item.image.src}
         </span>
       );
@@ -83,35 +108,23 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
     return null;
   };
 
-  const renderVerse = () => {
-    const parts = FULL_VERSE.split(' ');
-    return (
-      <div className="text-center text-lg mb-6 p-4 bg-yellow-50 rounded-lg">
-        {parts.map((word, index) => (
-          <span
-            key={index}
-            className={word === 'ארץ' ? 'font-bold text-green-700' : ''}
-          >
-            {word}{' '}
-          </span>
-        ))}
-      </div>
-    );
-  };
-
-  const SpeciesBox = ({ item, isSelected = false, isOrdered = false, index = null }) => (
+  const SpeciesBox = ({ item, isDraggable = true, isOrdered = false, index }) => (
     <div
-      onClick={() => handleSpeciesClick(item)}
+      draggable={!showExplanation && isDraggable}
+      onDragStart={(e) => handleDragStart(e, index)}
+      onTouchStart={(e) => handleTouch(e, index, 'start')}
+      onTouchEnd={(e) => handleTouch(e, index, 'end')}
+      data-from-ordered={isOrdered}
       className={`
-        p-3 rounded-lg text-center min-w-[100px] transition-all cursor-pointer
-        ${isSelected ? 'ring-2 ring-green-500 transform scale-105' : ''}
+        p-3 rounded-lg text-center min-w-[100px] transition-all touch-manipulation
+        ${isDraggable && !showExplanation ? 'cursor-grab hover:scale-105' : ''}
         ${showExplanation 
           ? isOrdered 
             ? item.orderRank === index + 1
               ? 'bg-green-100 border-2 border-green-500'
               : 'bg-red-100 border-2 border-red-500'
             : 'bg-gray-100'
-          : 'bg-gray-100 hover:bg-gray-200'
+          : 'bg-gray-100'
         }
       `}
     >
@@ -129,17 +142,17 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* הצגת הפסוק */}
-      {renderVerse()}
+     {/*  {renderVerse()} */}
 
       {/* אזור המינים הלא מסודרים */}
       {!showExplanation && getUnorderedSpecies().length > 0 && (
         <div className="flex flex-wrap justify-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-          {getUnorderedSpecies().map((item) => (
+          {getUnorderedSpecies().map((item, index) => (
             <SpeciesBox 
               key={item.id} 
-              item={item}
-              isSelected={selectedSpecies === item.id}
+              item={item} 
+              index={index}
+              isDraggable={!showExplanation}
             />
           ))}
         </div>
@@ -158,16 +171,16 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
             return (
               <div
                 key={index}
-                onClick={() => handlePositionClick(index)}
-                className={`
-                  border-2 border-dashed border-green-200 rounded-lg p-2 min-h-[100px] 
-                  flex items-center justify-center cursor-pointer
-                  ${!currentSpecies && selectedSpecies ? 'bg-green-100' : ''}
-                `}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(index, true)}
+                data-drop-target="true"
+                data-index={index}
+                className="border-2 border-dashed border-green-200 rounded-lg p-2 min-h-[100px] flex items-center justify-center"
               >
                 {currentSpecies && (
                   <SpeciesBox 
-                    item={currentSpecies}
+                    item={currentSpecies} 
+                    isDraggable={!showExplanation}
                     isOrdered={true}
                     index={index}
                   />
@@ -178,30 +191,26 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
         </div>
       </div>
 
-      {/* הודעת שגיאה */}
-      {showError && (
-        <div className="p-4 bg-red-50 rounded-lg text-center">
-          <p className="text-red-600 mb-2">הסדר אינו נכון, נסו שוב!</p>
+      {/* כפתורי פעולה */}
+      <div className="flex justify-center space-x-4 rtl:space-x-reverse">
+        {showError && (
           <button
             onClick={handleTryAgain}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
             נסה שוב
           </button>
-        </div>
-      )}
+        )}
 
-      {/* כפתור בדיקה */}
-      {!showExplanation && orderedSpecies.length === 5 && !showError && (
-        <div className="text-center mt-6">
+        {!showExplanation && orderedSpecies.length === 5 && !showError && (
           <button
             onClick={checkOrder}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
             בדוק תשובות
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* הסבר */}
       {showExplanation && (
@@ -212,7 +221,7 @@ const OrderByLand = ({ species, correctOrder, onComplete }) => {
           <p className="text-center text-gray-700">
             סדר הקדימה נקבע לפי קרבת המינים למילה "ארץ" בפסוק.
             זית ותמר קודמים כי הם קרובים למילה "ארץ" השנייה,
-            אחריהם יין שקרוב למילה "ארץ" הראשונה,
+            אחריהם גפן שקרוב למילה "ארץ" הראשונה,
             ולבסוף תאנה ורימון שרחוקים יותר.
           </p>
         </div>
